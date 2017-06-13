@@ -1,0 +1,143 @@
+# Ansible Role: NVM
+
+
+Installs NVM & Node.js on Debian/Ubuntu on RHEL/CentOS (Coming soon)
+
+Ansible weirdness with SSH and (non)interactive shells makes working with NVM and Ansible a bit problematic. This [stack overflow](https://stackoverflow.com/questions/22256884/not-possible-to-source-bashrc-with-ansible) post explains some of the things other people have done to get around this issue.
+
+## Were other roles fall short
+Other Ansible roles that install NVM or Node.js fall short in a few areas.
+
+1. They use the apt-get or yum packages to install Node.js. This often means that the Node.js package is older than what is currently available via the Node repo. In some cases, those packages may not be a LTS release.
+
+1. They will often install NVM and Node.js as `root` user (`sudo su`, `become: true`) to install NVM which can add to the headache of NPM plugin management in addition to being an unneeded privilege escalation security risk
+
+1. You cannot run ad hoc NVM commands
+
+
+## Where this role differs
+
+1. You can install NVM via wget, curl or git
+1. You can use NVM just like you would via your [command line](https://github.com/creationix/nvm#usage)
+1. You can install whatever version of Node.JS you want
+1. Doesn't install NVM or Node.js as root
+
+##Installation
+1. Clone this repo into your roles folder
+1. In your `ansible.cfg` point the `roles_path` variable to the roles folder i.e. `roles_path = ../ansible-roles/`
+1. Include role in your playbook
+
+## Example Playbooks
+
+#### Simple
+``` yaml
+- hosts: all
+  roles:
+    - role: ansible-role-nvm
+      nodejs_version: "4.8.0"
+
+```
+#### More Complex
+``` yaml
+- hosts: dev
+  vars_files:
+    - vars/dev.yml
+  roles:
+    - role: ansible-role-nvm
+      nodejs_version: " {{ config.dev.version }}"
+
+
+- hosts: prod
+  vars_files:
+    - vars/prod.yml
+  roles:
+    - role: ansible-role-nvm
+      nvm_install: "curl"
+      nvm_dir: "/usr/local/nvm"
+      nvm_commands:
+       - "nvm install {{ config.prod.client-1.nodejs }}"
+       - "nvm alias default {{ config.prod.client-1.nodejs }}"
+       - "nvm run default app.js"
+
+```
+
+## Role Variables
+
+Available variables are listed below, along with default values see [defaults/main.yml]( defaults/main.yml)
+
+The Node.js version to install. The latest "LTS" version is the default and works on most supported OSes.
+
+    nodejs_version: "LTS"
+
+NVM version to install
+
+    nvm_version: "0.33.2"
+
+List of NVM commands to run. Default is an empty list.
+
+    nvm_commands: []
+
+NVM Installation type. Options are wget, curl and git
+
+    nvm_install: "wget"
+
+NVM Installation directory
+
+    nvm_dir: "{{ansible_env.HOME}}/.nvm"
+
+NVM Profile location Options are .profile, .bashrc, .bash_profile, .zshrc
+
+    nvm_profile: ".bashrc"
+
+NVM source location Options are _script-nvm-exec, _script, _git
+
+    nvm_source: "_git"
+
+<!--
+    nodejs_install_npm_user: "{{ ansible_ssh_user }}"
+
+The user for whom the npm packages will be installed can be set here, this defaults to `ansible_user`.
+
+    npm_config_prefix: "/usr/local/lib/npm"
+
+The global installation directory. This should be writeable by the `nodejs_install_npm_user`.
+
+    npm_config_unsafe_perm: "false"
+
+Set to true to suppress the UID/GID switching when running package scripts. If set explicitly to false, then installing as a non-root user will fail.
+
+    nodejs_npm_global_packages: []
+
+A list of npm packages with a `name` and (optional) `version` to be installed globally. For example:
+
+    nodejs_npm_global_packages:
+      # Install a specific version of a package.
+      - name: jslint
+        version: 0.9.3
+      # Install the latest stable release of a package.
+      - name: node-sass
+      # This shorthand syntax also works (same as previous example).
+      - node-sass
+
+
+    nodejs_package_json_path: ""
+
+Set a path pointing to a particular `package.json` (e.g. `"/var/www/app/package.json"`). This will install all of the defined packages globally using Ansible's `npm` module.
+
+-->
+
+## Dependencies
+
+None.
+
+
+
+## License
+
+MIT / BSD
+
+## Author Information
+
+Dm00000 via MORGANGRAPHICS, INC
+
+This role borrows heavily from [Jeff Geerling's](https://www.jeffgeerling.com/) Node.js role, author of [Ansible for DevOps](https://www.ansiblefordevops.com/).

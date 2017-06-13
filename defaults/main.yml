@@ -1,0 +1,52 @@
+---
+# Set the specific version of Node.js to install ("4.8.0", "6.11.0").
+# use lts for latest Long Term Release
+# Version numbers from Nodesource: https://github.com/nodesource/distributions
+nodejs_version: "lts"
+
+# Version of NVM to install
+nvm_version: "0.33.2"
+
+# AdHoc NVM Commands
+nvm_commands: []
+
+# Options are wget, curl, git
+# Git :default dest: is the same as nvm_profile below.
+nvm_install: 'wget'
+
+# The next 3 options only apply to wget and curl - If you don't know what you're doing
+# you are fine to leave these alone.
+#
+# NVM Default directory
+# NVM documentation states you can change NVM_DIR to NVM_DIR=/usr/local/nvm bash for a global install.
+nvm_dir: "{{ansible_env.HOME}}/.nvm"
+
+# NVM Profile location Options are .profile, .bashrc, .bash_profile, .zshrc"
+nvm_profile: '.bashrc'
+
+# NVM source location Options are _script-nvm-exec, _script, _git
+nvm_source: '_git'
+
+
+
+# The user for whom the npm packages will be installed.
+# nodejs_install_npm_user: username
+
+# The directory for global installations.
+npm_config_prefix: "/usr/local/lib/npm"
+
+# Set to true to suppress the UID/GID switching when running package scripts. If set explicitly to false, then installing as a non-root user will fail.
+npm_config_unsafe_perm: "false"
+
+# Define a list of global packages to be installed with NPM.
+nodejs_npm_global_packages: []
+#  # Install a specific version of a package.
+#  - name: jslint
+#    version: 0.9.3
+#  # Install the latest stable release of a package.
+#  - name: node-sass
+#  # This shorthand syntax also works (same as previous example).
+#  - node-sass
+
+# The path of a package.json file used to install packages globally.
+nodejs_package_json_path: ""
