@@ -24,8 +24,8 @@ nvm_dir: "{{ansible_env.HOME}}/.nvm"
 # NVM Profile location Options are .profile, .bashrc, .bash_profile, .zshrc"
 nvm_profile: '.bashrc'
 
-# NVM source location Options are _script-nvm-exec, _script, _git
-nvm_source: '_git'
+# NVM source location - i.e. you host your own fork
+nvm_source: ''
 
 
 

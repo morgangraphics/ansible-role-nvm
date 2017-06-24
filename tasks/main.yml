@@ -1,9 +1,6 @@
 ---
-# - include: setup-RedHat.yml
-#   when: ansible_os_family == 'RedHat'
+- include: nvm.yml
 
-- include: setup-Debian.yml
-  when: ansible_os_family == 'Debian'
 
 # - name: Define nodejs_install_npm_user
 #   set_fact:
