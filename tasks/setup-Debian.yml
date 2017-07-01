@@ -5,12 +5,12 @@
     command: "which {{ nvm_install }}"
     register: cmd
 
-  - name: Determine if install type wget
+  - name: Determine install type
     set_fact:
       run_command: 'wget -qO-'
     when: "'/wget' in cmd.stdout"
 
-  - name: Determine if install type curl
+  - name: Determine install type
     set_fact:
       run_command: 'curl -o-'
     when: "'/curl' in cmd.stdout"
@@ -19,7 +19,7 @@
     shell: "{{ run_command }} https://raw.githubusercontent.com/creationix/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ nvm_profile }} bash"
     register: nvm_result
 
-  when: "nvm_install == 'curl' or  nvm_install == 'wget'"
+  when: "'curl' == '{{ nvm_install }}' or 'wget' == '{{ nvm_install }}'"
 
 
 # git
@@ -53,7 +53,7 @@
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
 
-  when: "nvm_install == 'git'"
+  when: "'git' == '{{ nvm_install }}'"
 
 - name: Check NVM Version
   shell: bash -ic "nvm --version"
@@ -62,7 +62,7 @@
 - name: LTS Check
   set_fact:
     nodejs_version: --lts
-  when: "nodejs_version == 'lts'"
+  when: "'lts' == '{{ nodejs_version }}'"
 
 - name: Install Node if nvm_commands is empty
   shell: bash -ic "nvm install {{ nodejs_version }}"
