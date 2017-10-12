@@ -74,5 +74,3 @@
     "{{ nvm_commands }}"
   register:     nodejs_installed
   changed_when: nodejs_installed.stderr.find("is already installed") < 0
-
-#- debug: msg="#####################{{installed}}"
