@@ -105,13 +105,13 @@ ansible-playbook my-playbook.yml -e "ansible_python_interpreter=/usr/bin/python3
 
 Available variables are listed below, along with default values see [defaults/main.yml]( defaults/main.yml)
 
-The Node.js version to install. The latest "LTS" version is the default and works on most supported OSes.
+The Node.js version to install. The latest "lts" version is the default and works on most supported OSes.
 
-    nodejs_version: "LTS"
+    nodejs_version: "lts"
 
 NVM version to install
 
-    nvm_version: "0.33.2"
+    nvm_version: "0.33.11"
 
 List of NVM commands to run. Default is an empty list.
 
