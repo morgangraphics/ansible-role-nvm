@@ -3,6 +3,7 @@
 
 Installs NVM & Node.js on Debian/Ubuntu and RHEL/CentOS
 
+
 Ansible weirdness with SSH and (non)interactive shells makes working with NVM and Ansible a bit problematic. This [stack overflow](https://stackoverflow.com/questions/22256884/not-possible-to-source-bashrc-with-ansible) post explains some of the things other people have done to get around this issue.
 
 ## Were other roles fall short
@@ -31,17 +32,25 @@ Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
 ## Example Playbooks
 
 Playbooks are set up as an 'either/or' situation in regards to `nodejs_version` and
-`nvm_commands`. It is one or the other, it cannot be both.
+`nvm_commands`. It is one or the other, it cannot be both. [See Notes on NVM Commands below](#nvm-commands)
 
-1. If you want to just install NVM, include the `nodejs_version` as part of the role (see simple).
-1. If you use `nvm_commands` you will have to add the `nvm install VERSION` explicitly (see more complex).
+1. If you just want to install NVM with the latest LTS version of Node, just include the role as is.
+1. If you want to just install NVM, with a specific version of Node include the `nodejs_version` as part of the role (see simple).
+1. If you use `nvm_commands` you will have to add the `nvm install <VERSION>` explicitly (see more complex).
 
-#### Simple
+#### Super Simple (Installs latest LTS version of Node)
 ``` yaml
 - hosts: all
   roles:
     - role: ansible-role-nvm
-      nodejs_version: "4.8.0"
+```
+
+#### Simple (Installs a specific version of Node)
+``` yaml
+- hosts: all
+  roles:
+    - role: ansible-role-nvm
+      nodejs_version: "8.15.0"
 
 ```
 #### More Complex
@@ -68,14 +77,14 @@ Playbooks are set up as an 'either/or' situation in regards to `nodejs_version` 
 
 ```
 
+<a name='#nvm-commands'></a>
+## Notes on NVM commands
 
-## Notes
+1. If you specify `nodejs_version` and `nvm_commands` as part of your playbook, `nodejs_version` will be ignored.
+1. If you do not explicitly specify the `nvm install <VERSION>` as part of the `nvm_commands` e.g. `"nvm install v10.15.1"` Node.js **WILL NOT** be installed and any subsequent commands **WILL NOT** WORK as expected.
+1. NVM is stateless in that if you have multiple versions of Node installed on a machine, you may have to run `nvm use <VERSION>` as part of your script to run the Node version you want/expect.
 
-If you specify `nodejs_version` and `nvm_commands`, `nodejs_version` will be ignored.
-If you do not explicitly specify the `nvm install VERSION` as part of the `nvm_commands`
-Node.js will not be installed and any subsequent commands WILL NOT WORK as expected.
-
-
+## Issues
 If you are getting a "cannot find /usr/bin/python" error. It is due to OS's that run Python 3 by default (i.e. Fedora). You will need to specify the Ansible python interpreter variable in the inventory file or via the command line
 
 ```
@@ -111,9 +120,9 @@ The Node.js version to install. The latest "lts" version is the default and work
 
 NVM version to install
 
-    nvm_version: "0.33.11"
+    nvm_version: "10.15.0"
 
-List of NVM commands to run. Default is an empty list.
+List of [NVM commands to run](https://github.com/creationix/nvm#usage). Default is an empty list.
 
     nvm_commands: []
 
@@ -121,9 +130,11 @@ NVM Installation type. Options are wget, curl and git
 
     nvm_install: "wget"
 
-NVM Installation directory
+NVM Installation directory.
 
-    nvm_dir: "{{ansible_env.HOME}}/.nvm"
+    nvm_dir: ""
+
+*NVM will, by default, install the `.nvm` directory in the home directory of the user e.g. `/home/user1/.nvm`. You can override the installation directory by changing this variable e.g. `/opt/foo/nvm`. Will respect Ansible substitution variables e.g. `{{ansible_env.HOME}}`*
 
 NVM Profile location Options are .profile, .bashrc, .bash_profile, .zshrc
 
@@ -133,44 +144,23 @@ NVM source location i.e. you host your own fork of [NVM](https://github.com/crea
 
     nvm_source: ""
 
-<!--
-    nodejs_install_npm_user: "{{ ansible_ssh_user }}"
 
-The user for whom the npm packages will be installed can be set here, this defaults to `ansible_user`.
-
-    npm_config_prefix: "/usr/local/lib/npm"
-
-The global installation directory. This should be writeable by the `nodejs_install_npm_user`.
-
-    npm_config_unsafe_perm: "false"
-
-Set to true to suppress the UID/GID switching when running package scripts. If set explicitly to false, then installing as a non-root user will fail.
-
-    nodejs_npm_global_packages: []
-
-A list of npm packages with a `name` and (optional) `version` to be installed globally. For example:
-
-    nodejs_npm_global_packages:
-      # Install a specific version of a package.
-      - name: jslint
-        version: 0.9.3
-      # Install the latest stable release of a package.
-      - name: node-sass
-      # This shorthand syntax also works (same as previous example).
-      - node-sass
-
-
-    nodejs_package_json_path: ""
-
-Set a path pointing to a particular `package.json` (e.g. `"/var/www/app/package.json"`). This will install all of the defined packages globally using Ansible's `npm` module.
-
--->
 
 ## Dependencies
 
 None.
 
+## Change Log
 
+**1.2.0**
+1. Issue reported by [@magick93](https://github.com/morgangraphics/ansible-role-nvm/issues/2)
+1. Bumped default version of NVM script
+1. Documentation updates
+
+**1.0.2**
+1. Issue reported by [@swoodford](https://github.com/morgangraphics/ansible-role-nvm/issues/1)
+1. Bumped default version of NVM script
+1. Documentation updates
 
 ## License
 
