@@ -153,7 +153,7 @@ None.
 ## Change Log
 
 **1.2.0**
-1. Issue reported by [@magick93](https://github.com/morgangraphics/ansible-role-nvm/issues/2)
+1. Issue reported by [@magick93](https://github.com/morgangraphics/ansible-role-nvm/issues/3)
 1. Bumped default version of NVM script
 1. Documentation updates
 
