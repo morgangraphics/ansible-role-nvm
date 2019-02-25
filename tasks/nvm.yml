@@ -15,12 +15,19 @@
       run_command: 'curl -o-'
     when: "'/curl' in cmd.stdout"
 
+  - name: Create destination dir if it does not exist
+    file:
+      path: "{{ nvm_dir }}"
+      state: directory
+      mode: 0775
+    when: "nvm_dir != ''"
+
   - name: Install NVM
     shell: "{{ run_command }} https://raw.githubusercontent.com/creationix/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ nvm_profile }} bash"
+    warn: false
     register: nvm_result
 
   when: "nvm_install == 'curl' or  nvm_install == 'wget'"
-
 
 # git
 - block:
