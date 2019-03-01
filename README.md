@@ -82,7 +82,7 @@ Playbooks are set up as an 'either/or' situation in regards to `nodejs_version` 
 
 1. If you specify `nodejs_version` and `nvm_commands` as part of your playbook, `nodejs_version` will be ignored.
 1. If you do not explicitly specify the `nvm install <VERSION>` as part of the `nvm_commands` e.g. `"nvm install v10.15.1"` Node.js **WILL NOT** be installed and any subsequent commands **WILL NOT** WORK as expected.
-1. NVM is stateless in that if you have multiple versions of Node installed on a machine, you may have to run `nvm use <VERSION>` as part of your script to run the Node version you want/expect.
+1. NVM is stateless in that if you have multiple versions of Node installed on a machine, AND you have not set a default e.g. `nvm alias default v10.15.1` you may have to run `nvm use <VERSION>` as part of your script to run the Node version you want/expect.
 
 ## Issues
 If you are getting a "cannot find /usr/bin/python" error. It is due to OS's that run Python 3 by default (i.e. Fedora). You will need to specify the Ansible python interpreter variable in the inventory file or via the command line
@@ -120,7 +120,7 @@ The Node.js version to install. The latest "lts" version is the default and work
 
 NVM version to install
 
-    nvm_version: "10.15.0"
+    nvm_version: "0.30.0"
 
 List of [NVM commands to run](https://github.com/creationix/nvm#usage). Default is an empty list.
 
@@ -152,15 +152,14 @@ None.
 
 ## Change Log
 
-**1.2.0**
-1. Issue reported by [@magick93](https://github.com/morgangraphics/ansible-role-nvm/issues/3)
-1. Bumped default version of NVM script
-1. Documentation updates
+**1.1.1**
+* Documentation updates
+
+**1.1.0**
+* Issue reported by [@magick93](https://github.com/morgangraphics/ansible-role-nvm/issues/3), Bumped default version of NVM script, Documentation updates
 
 **1.0.2**
-1. Issue reported by [@swoodford](https://github.com/morgangraphics/ansible-role-nvm/issues/1)
-1. Bumped default version of NVM script
-1. Documentation updates
+* Issue reported by [@swoodford](https://github.com/morgangraphics/ansible-role-nvm/issues/1), Bumped default version of NVM script, Documentation updates
 
 ## License
 
