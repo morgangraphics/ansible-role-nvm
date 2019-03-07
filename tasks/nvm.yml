@@ -36,7 +36,7 @@
       command: "which {{ nvm_install }}"
       register: cmd
 
-    - name: Remove NVM to nvm_profile
+    - name: Remove NVM nvm_profile
       blockinfile:
         path: "{{ nvm_profile }}"
         state: absent
