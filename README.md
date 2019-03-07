@@ -4,14 +4,14 @@
 Installs NVM & Node.js on Debian/Ubuntu and RHEL/CentOS
 
 
-Ansible weirdness with SSH and (non)interactive shells makes working with NVM and Ansible a bit problematic. This [stack overflow](https://stackoverflow.com/questions/22256884/not-possible-to-source-bashrc-with-ansible) post explains some of the things other people have done to get around this issue.
+Ansible weirdness with SSH and (non)interactive shells makes working with NVM and Ansible a bit problematic. This [stack overflow](https://stackoverflow.com/questions/22256884/not-possible-to-source-bashrc-with-ansible) post explains some of the things other people have done to get around this particular issue.
 
-## Were other roles fall short
+## Where other roles fall short
 Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
 
 1. They use the apt-get or yum packages to install Node.js. This often means that the Node.js package is older than what is currently available via the Node repo. In some cases, those packages may not be a LTS release and if you need multiple node versions, you're out of luck.
 
-1. They will often install NVM and Node.js as `root` user (`sudo su` or `become: true`) to install NVM. This can add to the headache of NPM plugin management in addition to being an unneeded privilege escalation security risk
+1. They will often install NVM and Node.js as `root` user (`sudo su` or `become: true`). This can add to the headache of permissions related to NPM plugin management in addition to being an unneeded privilege escalation security risk
 
 1. You cannot run ad hoc NVM commands
 
@@ -31,7 +31,7 @@ Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
 
 ## Example Playbooks
 
-Playbooks are set up as an 'either/or' situation in regards to `nodejs_version` and
+Playbooks are set up as an 'either/or' situation in regards to `nodejs_version` AND
 `nvm_commands`. It is one or the other, it cannot be both. [See Notes on NVM Commands below](#nvm-commands)
 
 1. If you just want to install NVM with the latest LTS version of Node, just include the role as is.
@@ -60,7 +60,7 @@ Playbooks are set up as an 'either/or' situation in regards to `nodejs_version` 
     - vars/dev.yml
   roles:
     - role: ansible-role-nvm
-      nodejs_version: " {{ config.dev.version }}"
+      nodejs_version: "{{ config.dev.version }}"
 
 
 - hosts: prod
@@ -85,7 +85,7 @@ Playbooks are set up as an 'either/or' situation in regards to `nodejs_version` 
 1. NVM is stateless in that if you have multiple versions of Node installed on a machine, AND you have not set a default e.g. `nvm alias default v10.15.1` you may have to run `nvm use <VERSION>` as part of your script to run the Node version you want/expect.
 
 ## Issues
-If you are getting a "cannot find /usr/bin/python" error. It is due to OS's that run Python 3 by default (i.e. Fedora). You will need to specify the Ansible python interpreter variable in the inventory file or via the command line
+If you are getting a `"cannot find /usr/bin/python"` error. It is due to OS's that run Python 3 by default (e.g. Fedora). You will need to specify the Ansible python interpreter variable in the inventory file or via the command line
 
 ```
 [fedora1]
@@ -120,7 +120,7 @@ The Node.js version to install. The latest "lts" version is the default and work
 
 NVM version to install
 
-    nvm_version: "0.30.0"
+    nvm_version: "0.34.0"
 
 List of [NVM commands to run](https://github.com/creationix/nvm#usage). Default is an empty list.
 
@@ -134,7 +134,7 @@ NVM Installation directory.
 
     nvm_dir: ""
 
-*NVM will, by default, install the `.nvm` directory in the home directory of the user e.g. `/home/user1/.nvm`. You can override the installation directory by changing this variable e.g. `/opt/foo/nvm`. Will respect Ansible substitution variables e.g. `{{ansible_env.HOME}}`*
+*NVM will, by default, install the `.nvm` directory in the home directory of the user e.g. `/home/user1/.nvm`. You can override the installation directory by changing this variable e.g. `/opt/foo/nvm`. This variable will respect Ansible substitution variables e.g. `{{ansible_env.HOME}}`*
 
 NVM Profile location Options are .profile, .bashrc, .bash_profile, .zshrc
 
@@ -151,6 +151,9 @@ NVM source location i.e. you host your own fork of [NVM](https://github.com/crea
 None.
 
 ## Change Log
+
+**1.1.2**
+* Issue reported/PR supplied by [@DanHulton](https://github.com/morgangraphics/ansible-role-nvm/pull/5), Documentation updates, 
 
 **1.1.1**
 * Documentation updates
