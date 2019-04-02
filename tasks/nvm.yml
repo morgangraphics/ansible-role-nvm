@@ -76,6 +76,10 @@
   shell: bash -ic "nvm install {{ nodejs_version }}"
   when: "nvm_commands | length == 0"
 
+- name: Use Node if nvm_commands is empty
+  shell: bash -ic "nvm use {{ nodejs_version }}"
+  when: "nvm_commands | length == 0"
+
 - name: Install Node
   shell: bash -ic "{{item}}"
   with_items:
