@@ -17,9 +17,9 @@
 
   - name: Create destination dir if it does not exist
     file:
+      mode: 0775
       path: "{{ nvm_dir }}"
       state: directory
-      mode: 0775
     when: "nvm_dir != ''"
 
   - name: Install NVM
@@ -38,28 +38,32 @@
 
     - name: Remove NVM nvm_profile
       blockinfile:
-        path: "{{ nvm_profile }}"
-        state: absent
         block: |
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
+        marker_begin: "Installed via {{ role_repo }} START"
+        marker_end: "{{ role_repo }} END"
+        path: "{{ nvm_profile }}"
+        state: absent
 
     - name: Install via git
       git:
-        repo: 'https://github.com/creationix/nvm.git .nvm'
         dest: "{{ nvm_dir }}"
+        repo: 'https://github.com/creationix/nvm.git .nvm'
         version: "{{ nvm_version }}"
       when: "'/git' in cmd.stdout"
 
     - name: Add NVM to nvm_profile
       blockinfile:
-        path: "{{ nvm_profile }}"
-        create: yes
-        state: present
-        mode: 0644
         block: |
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
+        create: yes
+        marker_begin: "Installed via {{ role_repo }} START"
+        marker_end: "{{ role_repo }} END"
+        mode: 0644
+        path: "{{ nvm_profile }}"
+        state: present
 
   when: "nvm_install == 'git'"
 
@@ -67,18 +71,63 @@
   shell: bash -ic "nvm --version"
   register: version_response
 
+# Autocomplete
+- name: Add NVM autocomplete to nvm_profile
+  blockinfile:
+    block: |
+      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+    insertafter: "# This loads nvm"
+    marker_begin: "Installed via {{ role_repo }} START"
+    marker_end: "{{ role_repo }} END"
+    mode: 0644
+    path: "{{ nvm_profile }}"
+    state: present
+  when: "autocomplete == True"
+
 - name: LTS Check
   set_fact:
     nodejs_version: --lts
   when: "nodejs_version == 'lts'"
 
-- name: Install Node if nvm_commands is empty
-  shell: bash -ic "nvm install {{ nodejs_version }}"
-  when: "nvm_commands | length == 0"
-
+# This scenario handles the first run/install of NVM because this will automatically
+# alias the specified version as default - This should handle most use cases
 - name: Install Node
-  shell: bash -ic "{{item}}"
+  shell: bash -ic "nvm install {{ nodejs_version }}"
+  # when: "nvm_commands | length == 0 or default == False"
+
+# In the event there are multiple versions of Node being installed/used/upgraded
+# on the same machine we'll need to alias the default version accordingly
+- name: Set default version of Node if multiple versions exist
+  shell: bash -ic "nvm alias default {{ nodejs_version }}"
+  when:  "default == True"
+
+- name: Run whatever nvm_commands are there
+  shell: bash -ic "{{ item }}"
   with_items:
     "{{ nvm_commands }}"
-  register:     nodejs_installed
-  changed_when: nodejs_installed.stderr.find("is already installed") < 0
+  when: "nvm_commands | length >= 1"
+
+# Uninstall NVM
+- block:
+
+  - name: Uninstall NVM
+    file:
+      path: "{{ lookup('env','NVM_DIR') }}"
+      state: absent
+
+  - name: Remove NVM nvm_profile info
+    lineinfile:
+      regexp: '^export.+nvm\"|\[.+nvm'
+      path: "{{ nvm_profile }}"
+      state: absent
+
+  - name: Remove NVM autocomplete from nvm_profile
+    blockinfile:
+      block: |
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+      marker_begin: "Installed via {{ role_repo }} START"
+      marker_end: "{{ role_repo }} END"
+      path: "{{ nvm_profile }}"
+      state: absent
+
+  when: "uninstall == True"
