@@ -32,6 +32,8 @@ Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
 
 ## Example Playbooks
 
+Playbooks are set up as an 'either/or' situation in regards to `nodejs_version` and
+`nvm_commands`. It is one or the other, it cannot be both. [See Notes on NVM Commands below](#nvm-commands)
 
 #### Super Simple
 Include the role as is and it will install latest LTS version of Node.js
