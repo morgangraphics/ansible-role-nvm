@@ -32,8 +32,6 @@ Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
 
 ## Example Playbooks
 
-Playbooks are set up as an 'either/or' situation in regards to `nodejs_version` and
-`nvm_commands`. It is one or the other, it cannot be both. [See Notes on NVM Commands below](#nvm-commands)
 
 #### Super Simple
 Include the role as is and it will install latest LTS version of Node.js
@@ -53,14 +51,14 @@ Include the role and specify the specific version of Node.js you want to install
 
 ```
 #### More Complex
-This example shows how you might set up multiple environments (Dev/Prod) with different options. The Prod setup takes advantage of the `nvm_commands` option to install, build and run the application. The role supports and takes advantage of Ansible variable syntax `{{ variable_name }}`.
+This example shows how you might set up multiple environments (Dev/Prod) with different options. The Prod setup takes advantage of the `nvm_commands` option to install, build and run the application. The role supports and takes advantage of Ansible variable syntax e.g. `{{ variable_name }}`.
 ``` yaml
 - hosts: dev
   vars_files:
     - vars/dev.yml
   roles:
     - role: ansible-role-nvm
-      nodejs_version: "{{ config.dev.version }}"
+      nodejs_version: "{{ config.dev.nodejs.version }}"
 
 
 - hosts: prod
@@ -71,15 +69,16 @@ This example shows how you might set up multiple environments (Dev/Prod) with di
       nvm_install: "curl"
       nvm_dir: "/usr/local/nvm"
       nvm_commands:
-       - "nvm exec npm install {{ config.prod.client-1.nodejs }}"
-       - "nvm exec default npm run build"
-       - "nvm exec default npm run app.js"
+       - "nvm install {{ config.prod.client-1.nodejs.version }}"
+       - "nvm alias default {{ config.prod.client-1.nodejs.version }}"
+       - "nvm exec default npm install"
+       - "nvm exec default npm run prod"
 
 ```
 
 ## Installing/Running/Maintaining or Upgrading multiple versions of Node.js on the same host
 
-By default, the **first** Node.js version instantiated in your Playbook will automatically be aliased as the "default" version of Node.js regardless of whatever version you install afterwards or how many times you run the role.
+By default, the **first** Node.js version instantiated in your Playbook will automatically be aliased as the "default" version regardless of whatever version you install afterwards or how many times you run the role. It is important to declare which version is expected to be the "default" version.
 
 There are two NVM aliases `default` (current "active" version of Node.js) and `system` (the base OS version of Node.js). *Aliasing is a very powerful feature of NVM and it is a recommended best practice for managing your environment*.
 
@@ -116,7 +115,7 @@ There are two NVM aliases `default` (current "active" version of Node.js) and `s
 
 <a name='#nvm-commands'></a>
 ## Notes on NVM commands
-**NVM commands are a very powerful feature of this role** which takes advantage of the groundwork NVM has set up. Leveraging `nvm_commands: []` could potentially eliminate the need for a specific Node role to manage your Node applications.
+**NVM commands are a very powerful feature of this role** which takes advantage of the groundwork NVM has set up. Leveraging `nvm_commands` could potentially eliminate the need for a specific Node role to manage your Node applications.
 
 `nvm run` and `nvm exec` can be used as aliases for the `node` and `npm` command line commands.
 
@@ -129,12 +128,11 @@ There are two NVM aliases `default` (current "active" version of Node.js) and `s
   "private": true,
   "scripts": {
     "preserver": "npm run dbService &",
-    "server": "npm run server.js",
-    "build": "npm run build.js",
+    "server": "nodemon ./bin/www",
+    "build": "node build/build.js",
     "dbService": "nodemon ./data-service/server.js --ignore node_modules/"
   },
   "dependencies": {
-    ...
   }
 }
 ```
@@ -204,14 +202,14 @@ Another example
 
 **Whatever command line arguments you use to start your application, or command scripts you've declared in your package.json file can be placed inside the `nvm_commands: []` section of this role.**
 
-*There is a difference between `nvm run` and `nvm exec` commands. You can think of `nvm run` as functionally equivalent to `node run server.js` where you are invoking a server.js script file. `nvm exec` executes in a sub process context and is functionally equivalent to `npm run server` where `server` is a key name in the scripts section in the package.json file*
+*There is a difference between `nvm run` and `nvm exec` commands. You can think of `nvm run` as functionally equivalent to `node run server.js` or `node server.js` where you are invoking a server.js script file. `nvm exec` executes in a sub process context and is functionally equivalent to `npm run server` where `server` is a key name in the scripts section in the package.json file. They are both valid use cases for `nvm_commands` options*
 
 
 ## Caveats
 
-1. By default, the **first** version listed in your Playbook will automatically be aliased as the "default" version of Node.js regardless of whatever version you install afterwards or however many times you run the role. First one in/installed is always the default. As a result, if you expect a Node.js version declared later in the playbook to be set as default use `default: True` or explicitly set it in the `nvm_commands` list like `- "nvm alias default <YOUR_VERSION>"`
+1. By default, the **first** version listed in your Playbook, on the **first** run, will automatically be aliased as the "default" version of Node.js regardless of whatever version you install afterwards or however many times you run the role. First one in/installed is always the default. As a result, if you expect a Node.js version declared later in the playbook to be set as default use `default: True` or explicitly set it in the `nvm_commands` list like `- "nvm alias default <YOUR_VERSION>"`
 
-1. If you have `default: True` as a role variable **AND** `- "nvm alias default <SOME_OTHER_VERSION>"` as part of your `nvm_commands` the version with `default: True` will **ALWAYS** be executed First
+1. If you have `default: True` as a role variable **AND** `- "nvm alias default <SOME_OTHER_VERSION>"` as part of your `nvm_commands` the version with `default: True` will **ALWAYS** be executed **first**. This is because we need Node.js to be available before doing anything else.  
 
 1. NVM is stateless in that if you have multiple versions of Node.js installed on a machine, you may have to run `nvm use <VERSION>` as part of your script to run the Node.js version you want/expect. However, it is higly recommended that you alias your versions accordingly and reference them that way. See the example above.
 
@@ -249,13 +247,16 @@ The Node.js version to install. The latest "lts" version is the default and work
 
     nodejs_version: "lts"
 
-Convenience method for installing NVM bash autocomplete (`nvm <TAB>`)
+Convenience method for installing NVM bash autocomplete (`nvm <TAB>`) when a user has to maintain a server manually
 
     autocomplete: False
 
-NVM will automatically alias the first Run/Installed version as "default" which is more than likely what people will use this for, however, this will allow for installation/upgrade of multiple versions on an existing machine
+
+Set default version of Node when maintaining/installing multiple versions
 
     default: False
+
+*NVM will automatically alias the first run/installed version as "default" which is more than likely what people will use this role  for, however, this will allow for installation/upgrade of multiple versions on an existing machine*
 
 
 List of [NVM commands to run](https://github.com/creationix/nvm#usage). Default is an empty list.
@@ -299,8 +300,11 @@ None.
 
 ## Change Log
 
+**1.2.4**
+* Documentation updates for clarity
+
 **1.2.3**
-* Addresses issues [#8 Add default: True role variable to ensure NVM default alias is set correctly](https://github.com/morgangraphics/ansible-role-nvm/issues/8), [#9 Git functionality has changed according to the NVM documentation](https://github.com/morgangraphics/ansible-role-nvm/issues/9), [#10 NVM has an Autocomplete functionality. Add `autocomplete: True` Ansible variable to role](https://github.com/morgangraphics/ansible-role-nvm/issues/10), [#11 Update documentation to highlight updating a default version](https://github.com/morgangraphics/ansible-role-nvm/issues/11), and [#12 Add remove: True variable to uninstall NVM ](https://github.com/morgangraphics/ansible-role-nvm/issues/12) as discussed with @DanHulton to address multiple version of Node.js running on the same host.
+* Addresses issues [#8 Add default: True role variable to ensure NVM default alias is set correctly](https://github.com/morgangraphics/ansible-role-nvm/issues/8), [#9 Git functionality has changed according to the NVM documentation](https://github.com/morgangraphics/ansible-role-nvm/issues/9), [#10 NVM has an Autocomplete functionality. Add `autocomplete: True` Ansible variable to role](https://github.com/morgangraphics/ansible-role-nvm/issues/10), [#11 Update documentation to highlight updating a default version](https://github.com/morgangraphics/ansible-role-nvm/issues/11), and [#12 Add remove: True variable to uninstall NVM ](https://github.com/morgangraphics/ansible-role-nvm/issues/12) as discussed with [@DanHulton](https://github.com/morgangraphics/ansible-role-nvm/pull/7) to address multiple version of Node.js running on the same host.
 * Expanded documentation with examples about how powerful `nvm_commands: []` can be
 
 **1.1.2**
