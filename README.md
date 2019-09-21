@@ -300,10 +300,10 @@ None.
 
 ## Change Log
 
-**1.2.4**
+**1.2.1**
 * Documentation updates for clarity
 
-**1.2.3**
+**1.2.0**
 * Addresses issues [#8 Add default: True role variable to ensure NVM default alias is set correctly](https://github.com/morgangraphics/ansible-role-nvm/issues/8), [#9 Git functionality has changed according to the NVM documentation](https://github.com/morgangraphics/ansible-role-nvm/issues/9), [#10 NVM has an Autocomplete functionality. Add `autocomplete: True` Ansible variable to role](https://github.com/morgangraphics/ansible-role-nvm/issues/10), [#11 Update documentation to highlight updating a default version](https://github.com/morgangraphics/ansible-role-nvm/issues/11), and [#12 Add remove: True variable to uninstall NVM ](https://github.com/morgangraphics/ansible-role-nvm/issues/12) as discussed with [@DanHulton](https://github.com/morgangraphics/ansible-role-nvm/pull/7) to address multiple version of Node.js running on the same host.
 * Expanded documentation with examples about how powerful `nvm_commands: []` can be
 
