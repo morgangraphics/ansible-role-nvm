@@ -40,7 +40,7 @@ nvm_profile: ".bashrc"
 nvm_source: ''
 
 # Version of NVM to install
-nvm_version: "0.34.0"
+nvm_version: "0.35.0"
 
 # Uninstall NVM
 uninstall: False
