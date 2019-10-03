@@ -284,7 +284,7 @@ NVM source location i.e. you host your own fork of [NVM](https://github.com/crea
 
 NVM version to install
 
-    nvm_version: "0.34.0"
+    nvm_version: "0.35.0"
 
 
 Uninstall NVM, will remove .nvm directory and clean up `{{ nvm_profile }}` file
@@ -299,6 +299,9 @@ Uninstall NVM, will remove .nvm directory and clean up `{{ nvm_profile }}` file
 None.
 
 ## Change Log
+
+**1.2.2**
+* NVM version bump
 
 **1.2.1**
 * Documentation updates for clarity
