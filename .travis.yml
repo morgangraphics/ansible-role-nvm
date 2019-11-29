@@ -26,7 +26,7 @@ services:
 
 before_install:
   - 'sudo docker pull ${distribution}:${version}'
-  - 'sudo docker build --no-cache --rm --file=tests/Dockerfile.${distribution}-${version} --tag=${distribution}-${version}:ansible testss'
+  - 'sudo docker build --no-cache --rm --file=tests/Dockerfile.${distribution}-${version} --tag=${distribution}-${version}:ansible ./tests'
 
 script:
   - export container_id=$(date +%s)
