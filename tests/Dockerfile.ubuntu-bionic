@@ -6,7 +6,7 @@ RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y software-pro
 
 
 # Install pip via get-pip.py
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && $(which python) ./get-pip.py
+RUN wget -O https://bootstrap.pypa.io/get-pip.py && $(which python) ./get-pip.py
 
 # Install ansible
 RUN $(which pip3) install ansible
