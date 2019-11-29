@@ -1,37 +1,41 @@
 ---
 # wget (deault) or curl
-- block:
-  - name: Check if wget or curl is installed
-    command: "which {{ nvm_install }}"
-    register: cmd
+- name: determine if wget or curl is installed
+  block:
+    - name: Check if wget or curl is installed
+      command: "which {{ nvm_install }}"
+      register: cmd
+      changed_when: "cmd.rc != 0"
 
-  - name: Determine if install type wget
-    set_fact:
-      run_command: 'wget -qO-'
-    when: "'/wget' in cmd.stdout"
+    - name: Determine if install type wget
+      set_fact:
+        run_command: 'wget -qO-'
+      when: "'/wget' in cmd.stdout"
 
-  - name: Determine if install type curl
-    set_fact:
-      run_command: 'curl -o-'
-    when: "'/curl' in cmd.stdout"
+    - name: Determine if install type curl
+      set_fact:
+        run_command: 'curl -o-'
+      when: "'/curl' in cmd.stdout"
 
-  - name: Create destination dir if it does not exist
-    file:
-      mode: 0775
-      path: "{{ nvm_dir }}"
-      state: directory
-    when: "nvm_dir != ''"
+    - name: Create destination dir if it does not exist
+      file:
+        mode: 0775
+        path: "{{ nvm_dir }}"
+        state: directory
+      when: nvm_dir | bool
 
-  - name: Install NVM
-    shell: "{{ run_command }} https://raw.githubusercontent.com/creationix/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ nvm_profile }} bash"
-    args:
-      warn: false
-    register: nvm_result
+    - name: Install NVM
+      shell: "{{ run_command }} https://raw.githubusercontent.com/creationix/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ nvm_profile }} bash"
+      args:
+        warn: false
+      register: nvm_result
+      changed_when: "'already installed' not in nvm_result.stdout"
 
-  when: "nvm_install == 'curl' or  nvm_install == 'wget'"
+  when: "nvm_install in ['curl', 'wget']"
 
 # git
-- block:
+- name: install via git
+  block:
     - name: Check if git is installed
       command: "which {{ nvm_install }}"
       register: cmd
@@ -59,7 +63,7 @@
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
         create: yes
-        marker_begin: "Installed via {{ role_repo }} START"
+        marker_begin: "Installed nvm via {{ role_repo }} START"
         marker_end: "{{ role_repo }} END"
         mode: 0644
         path: "{{ nvm_profile }}"
@@ -67,9 +71,10 @@
 
   when: "nvm_install == 'git'"
 
-- name: Check NVM Version
+- name: Check NVM Version # noqa 305
   shell: bash -ic "nvm --version"
-  register: version_response
+  register: nvm_version_response
+  changed_when: "nvm_version_response.rc != 0"
 
 # Autocomplete
 - name: Add NVM autocomplete to nvm_profile
@@ -77,12 +82,12 @@
     block: |
       [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
     insertafter: "# This loads nvm"
-    marker_begin: "Installed via {{ role_repo }} START"
+    marker_begin: "Installed nvm autocomplete via {{ role_repo }} START"
     marker_end: "{{ role_repo }} END"
     mode: 0644
     path: "{{ nvm_profile }}"
     state: present
-  when: "autocomplete == True"
+  when: autocomplete
 
 - name: LTS Check
   set_fact:
@@ -91,24 +96,26 @@
 
 # This scenario handles the first run/install of NVM because this will automatically
 # alias the specified version as default - This should handle most use cases
-- name: Install Node
+- name: Install Node # noqa 305
   shell: bash -ic "nvm install {{ nodejs_version }}"
-  # when: "nvm_commands | length == 0 or default == False"
+  register: node_version_response
+  changed_when: "'already installed' not in node_version_response.stderr"
 
 # In the event there are multiple versions of Node being installed/used/upgraded
 # on the same machine we'll need to alias the default version accordingly
-- name: Set default version of Node if multiple versions exist
+- name: Set default version of Node if multiple versions exist # noqa 305
   shell: bash -ic "nvm alias default {{ nodejs_version }}"
-  when:  "default == True"
+  when:  default
 
-- name: Run whatever nvm_commands are there
+- name: Run whatever nvm_commands are there # noqa 305
   shell: bash -ic "{{ item }}"
   with_items:
     "{{ nvm_commands }}"
-  when: "nvm_commands | length >= 1"
+  when: nvm_commands | length > 0
 
 # Uninstall NVM
-- block:
+- name: uninstall nvm
+  block:
 
   - name: Uninstall NVM
     file:
@@ -130,4 +137,4 @@
       path: "{{ nvm_profile }}"
       state: absent
 
-  when: "uninstall == True"
+  when: uninstall

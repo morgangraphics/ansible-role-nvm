@@ -1,0 +1,15 @@
+# Use an official Ubuntu 18.04 runtime as a parent image
+FROM ubuntu:bionic
+
+
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y software-properties-common
+
+
+# Install pip via get-pip.py
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && $(which python) ./get-pip.py
+
+# Install ansible
+RUN $(which pip3) install ansible
+
+# Generate the inventory files
+RUN echo "[local]\nlocalhost ansible_connection=local\n[ubuntu-bionic]\nlocalhost ansible_connection=local" > /etc/ansible/hosts
