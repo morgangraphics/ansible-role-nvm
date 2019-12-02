@@ -2,25 +2,27 @@
 services: docker
 
 env:
-  # - distribution: centos
-  #   version: 7
-  # - distribution: fedora
-  #   version: 26
-  # - distribution: fedora
-  #   version: 25
-  # - distribution: fedora
-  #   version: 24
-  # - distribution: ubuntu
-  #   version: xenial
-  # - distribution: ubuntu
-  #   version: trusty
-  - distribution: ubuntu
-    version: bionic
-  # - distribution: debian
-  #   version: stretch
-  # - distribution: debian
-  #   version: jessie
-  role_name: ansible-role-nvm
+  global:
+    # - distribution: centos
+    #   version: 7
+    # - distribution: fedora
+    #   version: 26
+    # - distribution: fedora
+    #   version: 25
+    # - distribution: fedora
+    #   version: 24
+    # - distribution: ubuntu
+    #   version: xenial
+    # - distribution: ubuntu
+    #   version: trusty
+    - distribution: ubuntu
+      version: bionic
+    # - distribution: debian
+    #   version: stretch
+    # - distribution: debian
+    #   version: jessie
+  jobs:
+      role_name=ansible-role-nvm
 
 services:
   - docker
