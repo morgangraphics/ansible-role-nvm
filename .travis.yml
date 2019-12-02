@@ -20,7 +20,7 @@ env:
   #   version: stretch
   # - distribution: debian
   #   version: jessie
-  - role_name: ansible-role-nvm
+  role_name: ansible-role-nvm
 
 services:
   - docker
