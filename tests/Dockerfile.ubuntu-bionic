@@ -2,14 +2,12 @@
 FROM ubuntu:bionic
 
 
-RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y software-properties-common git curl
-
-
-# Install pip via get-pip.py
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && $(which python) ./get-pip.py
-
-# Install ansible
-RUN $(which pip3) install ansible
+RUN apt-get update && \
+apt-get dist-upgrade -y && \
+apt-get install curl python3 python3-dev -y && \
+curl https://bootstrap.pypa.io/get-pip.py -o /root/get-pip.py && \
+$(which python3) /root/get-pip.py && \
+$(which pip3) install ansible
 
 # Generate the inventory files
-RUN echo "[local]\nlocalhost ansible_connection=local\n[ubuntu-bionic]\nlocalhost ansible_connection=local" > /etc/ansible/hosts
+RUN mkdir -p /etc/ansible/ && echo "[local]\nlocalhost ansible_connection=local\n\n[ubuntu-bionic]\nlocalhost ansible_connection=local" > /etc/ansible/hosts
