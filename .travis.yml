@@ -20,6 +20,7 @@ env:
   #   version: stretch
   # - distribution: debian
   #   version: jessie
+  - role_name: ansible-role-nvm
 
 services:
   - docker
@@ -30,8 +31,8 @@ before_install:
 
 script:
   - container_id=$(mktemp)
-  - role_name=ansible-role-nvm
-  - 'docker run -a --detach --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --volume="${PWD}":/etc/ansible/roles/${role_name}:ro ${distribution}-${version}:ansible > "${container_id}"'
+  #- 'docker run --detach --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --volume="${PWD}":/etc/ansible/roles/${role_name}:ro ${distribution}-${version}:ansible > "${container_id}"'
+  - 'docker run -a --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --volume="${PWD}":/etc/ansible/roles/${role_name}:ro ${distribution}-${version}:ansible > "${container_id}"'
   - 'docker ps -a'
   - 'docker ps -a'
   - 'docker ps -a'
