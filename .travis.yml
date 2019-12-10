@@ -33,7 +33,8 @@ before_install:
 
 script:
   - container_id=$(mktemp)
-  - 'docker run --detach --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --volume="${PWD}":/etc/ansible/roles/${role_name}:ro ${distribution}-${version}:ansible > "${container_id}"'
+  - echo ${container_id}
+  - 'docker run --detach --privileged --read-only --volume /sys/fs/cgroup:/sys/fs/cgroup --read-only --volume="${PWD}":/etc/ansible/roles/${role_name} ${distribution}-${version}:ansible > "${container_id}"'
   #- 'docker run -a stderr -v /sys/fs/cgroup:/sys/fs/cgroup:ro --volume="${PWD}":/etc/ansible/roles/${role_name}:ro ${distribution}-${version}:ansible > "${container_id}"'
   - 'docker ps -a'
   - 'docker ps -a'
