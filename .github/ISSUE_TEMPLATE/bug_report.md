@@ -14,7 +14,9 @@ A clear and concise description of what the bug is.
 A clear and concise description of what you expected to happen.
 
 **To Reproduce**
-Minimally viable playbook to recreate the issue you are experiencing g
+Minimally viable playbook to recreate the issue you are experiencing
+
+**Shell** [e.g. Bash, Dash, ksh, tcsh, zsh]
 
 **Desktop (please complete the following information):**
  - OS: [e.g. Ubuntu 18.04, CentOS, OSX]
