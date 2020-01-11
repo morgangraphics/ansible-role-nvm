@@ -11,3 +11,6 @@ $(which pip3) install ansible
 
 # Generate the inventory files
 RUN mkdir -p /etc/ansible/ && echo "[local]\nlocalhost ansible_connection=local\n\n[ubuntu-bionic]\nlocalhost ansible_connection=local" > /etc/ansible/hosts
+
+# using cat at the ENTRYPOINT keeps the container running so we can execute commands against it
+ENTRYPOINT ["cat"]
