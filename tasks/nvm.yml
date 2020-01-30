@@ -15,11 +15,23 @@
       run_command: 'curl -o-'
     when: "'/curl' in cmd.stdout"
 
-  - name: Create destination dir if it does not exist
-    file:
-      mode: 0775
-      path: "{{ nvm_dir }}"
-      state: directory
+  - name: Is the nvm_dir variable explicitly declared?
+    block:
+      
+      - name: Create nvm_dir if it does not exist
+        file:
+          mode: 0775
+          path: "{{ nvm_dir }}"
+          state: directory
+        become: true
+
+      - name: Create profile if it does not exist
+        file:
+          mode: 0644
+          path: "{{ nvm_profile }}"
+          state: touch
+        become: true
+
     when: "nvm_dir != ''"
 
   - name: Install NVM
@@ -28,7 +40,7 @@
       warn: false
     register: nvm_result
 
-  when: "nvm_install == 'curl' or  nvm_install == 'wget'"
+  when: nvm_install in ['curl', 'wget']
 
 # git
 - block:
@@ -82,7 +94,7 @@
     mode: 0644
     path: "{{ nvm_profile }}"
     state: present
-  when: "autocomplete == True"
+  when: autocomplete
 
 - name: LTS Check
   set_fact:
@@ -99,7 +111,7 @@
 # on the same machine we'll need to alias the default version accordingly
 - name: Set default version of Node if multiple versions exist
   shell: bash -ic "nvm alias default {{ nodejs_version }}"
-  when:  "default == True"
+  when:  default
 
 - name: Run whatever nvm_commands are there
   shell: bash -ic "{{ item }}"
