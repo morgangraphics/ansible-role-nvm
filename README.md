@@ -159,7 +159,7 @@ There are two pre-existing NVM aliases `default` (current "active" version of No
 
 *Aliasing is a very powerful feature of NVM and it is a **recommended best practice** for managing your environment*.
 
-
+#### Multi Install
 ``` yaml
 
 - hosts: host-1
@@ -175,7 +175,7 @@ There are two pre-existing NVM aliases `default` (current "active" version of No
 
 ```
 
-
+#### Multi Install w/ default
 ``` yaml
 
 - hosts: host-2
@@ -238,7 +238,7 @@ print('hello-world')
   roles:
     # Services
     # WHAT'S HAPPENING?
-    # 1. Run the services script in your package.json file with Node version 8.15.0
+    # 1. Run the services JavaScript file with Node version 8.15.0
     # WARNING: This is aliased as the default version of Node.js At this point !!
     # Therefore We need to explicitly specify the version we're using because
     # the default Node.js version changes in Application section below
@@ -250,8 +250,9 @@ print('hello-world')
     # Application
     # WHAT'S HAPPENING?
     # 1. Set the default version of Node.js to version 10.15.0
-    # 2. Run the test scripts (using the default alias version of 10.15.0)
-    # 3. Then run the production deploy script
+    # 2. Install package dependencies with npm
+    # 3. Set the environment to Production, run the build JavaScript file 
+    # 4. Then run the production deploy script
     - role: ansible-role-nvm
       nodejs_version: "10.15.0"
       nvm_commands:
@@ -313,7 +314,7 @@ Another example
 ## Issues
 
 
-#### `nvm: command not found error`
+#### `"nvm: command not found" error`
 
 This is often the result of running the role in another user context then the nvm and node user context will run inside the machine. If you add `become: true` to all the roles in your playbook to get around errors those roles throw due to permission issues, then this role will install nvm under the `ROOT_USER` (usually `/root/.bashrc`). **It is more than likely that you will want to run nvm and node as a default user e.g. vagrant, ec2-user, ubuntu etc.** If, for whatever reason, you cannot remove the `become: true` for everything, you can get around the `become: true` issue by specifying `become_user: ec2-user` for this role alone. See [bash: nvm command not found
 ](https://github.com/morgangraphics/ansible-role-nvm/issues/16) for a detailed explanation of the issue
@@ -381,7 +382,7 @@ NVM Profile location Options are .profile, .bashrc, .bash_profile, .zshrc
 
     nvm_profile: ".bashrc"
 
-> *The location of the bash profile in which Bash (or Dash depending on distribution) will source the `nvm` command from. There are two potential contexts to consider, globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want) e.g `/etc/bash.bashrc`*
+> *The location of the bash profile in which Bash (or Dash depending on distribution) will source the `nvm` command from. There are two potential contexts/logins/shell to consider, globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want) e.g `/etc/bash.bashrc`*
 
 > **OR**
 
