@@ -17,12 +17,24 @@
         run_command: 'curl -o-'
       when: "'/curl' in cmd.stdout"
 
-    - name: Create destination dir if it does not exist
-      file:
-        mode: 0775
-        path: "{{ nvm_dir }}"
-        state: directory
-      when: nvm_dir | bool
+  - name: Is the nvm_dir variable explicitly declared?
+    block:
+      
+      - name: Create nvm_dir if it does not exist
+        file:
+          mode: 0775
+          path: "{{ nvm_dir }}"
+          state: directory
+        become: true
+
+      - name: Create profile if it does not exist
+        file:
+          mode: 0644
+          path: "{{ nvm_profile }}"
+          state: touch
+        become: true
+
+    when: "nvm_dir != ''"
 
     - name: Install NVM
       shell: "{{ run_command }} https://raw.githubusercontent.com/creationix/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ nvm_profile }} bash"
@@ -31,7 +43,7 @@
       register: nvm_result
       changed_when: "'already installed' not in nvm_result.stdout"
 
-  when: "nvm_install in ['curl', 'wget']"
+  when: nvm_install in ['curl', 'wget']
 
 # git
 - name: install via git
