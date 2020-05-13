@@ -47,7 +47,7 @@
     - name: "!WARNING! set unrecommended default for any other nvm_profile value !WARNING!"
       set_fact:
         user_shell: { 'command': '/etc/bash -ic', 'alias': 'bash' }
-      when: (shell_path is undefined) or (found_path | bool)
+      when: (shell_path is undefined) or (found_path | bool == False)
 
     - name: does profile file exist
       stat:
@@ -153,7 +153,6 @@
 
 - name: Check NVM Version # noqa 305
   shell: "{{ user_shell.command + ' \"nvm --version\"' }}"
-  #shell: /usr/bin/zsh -ic "nvm --version"
   register: nvm_version_response
   changed_when: "nvm_version_response.rc != 0"
 
