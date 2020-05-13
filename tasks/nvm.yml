@@ -1,49 +1,117 @@
 ---
-# wget (deault) or curl
-- name: determine if wget or curl is installed
+
+# https://github.com/morgangraphics/ansible-role-nvm/issues/18
+- name: determine shell in which we are running
   block:
-    - name: Check if wget or curl is installed
-      command: "which {{ nvm_install }}"
-      register: cmd
-      changed_when: "cmd.rc != 0"
 
-    - name: Determine if install type wget
+    - name: set default found path
       set_fact:
-        run_command: 'wget -qO-'
-      when: "'/wget' in cmd.stdout"
+        found_path: ''
 
-    - name: Determine if install type curl
+    - name: test for shells
+      command: "which {{ item }}"
+      with_items:
+        - bash
+        - dash
+        - zsh
+        - csh
+        - tcsh
+      register: shell_path
+      when: item in nvm_profile
+
+    - name: set found path
       set_fact:
-        run_command: 'curl -o-'
-      when: "'/curl' in cmd.stdout"
+        found_path: "{{ shell_path.results | selectattr('stdout', 'defined') | map(attribute = 'stdout') | list | first }}"
+      when: shell_path.results | selectattr('stdout', 'defined') | map(attribute = 'stdout') | list | length > 0
 
-  - name: Is the nvm_dir variable explicitly declared?
-    block:
-      
-      - name: Create nvm_dir if it does not exist
-        file:
-          mode: 0775
-          path: "{{ nvm_dir }}"
-          state: directory
-        become: true
+    - name: set bash command
+      set_fact:
+        user_shell: { 'command': '{{ found_path }} -ic', 'alias': 'bash' }
+      when: '"bash" in nvm_profile'
 
-      - name: Create profile if it does not exist
-        file:
-          mode: 0644
-          path: "{{ nvm_profile }}"
-          state: touch
-        become: true
+    - name: set zsh command
+      set_fact:
+        user_shell: { 'command': '{{ found_path }} -ic', 'alias': 'zsh' }
+      when: '"zsh" in nvm_profile'
 
-    when: "nvm_dir != ''"
+    - name: set csh command
+      set_fact:
+        user_shell: { 'command': '{{ found_path }} -ic', 'alias': 'csh' }
+      when: "'csh' in nvm_profile and 'tcsh' not in nvm_profile"
 
-    - name: Install NVM
-      shell: "{{ run_command }} https://raw.githubusercontent.com/creationix/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ nvm_profile }} bash"
-      args:
-        warn: false
-      register: nvm_result
-      changed_when: "'already installed' not in nvm_result.stdout"
+    - name: set tcsh command
+      set_fact:
+        user_shell: { 'command': '{{ found_path }} -ic', 'alias': 'tcsh' }
+      when: "'tcsh' in nvm_profile"
+
+    - name: "!WARNING! set unrecommended default for any other nvm_profile value !WARNING!"
+      set_fact:
+        user_shell: { 'command': '/etc/bash -ic', 'alias': 'bash' }
+      when: (shell_path is undefined) or (found_path | bool)
+
+    - name: does profile file exist
+      stat:
+        path: "{{ nvm_profile }}"
+      register: profile_file
+
+    - name: Create profile file if it does not exist
+      file:
+        mode: 0777
+        path: "{{ nvm_profile }}"
+        state: touch
+      when: not profile_file.stat.exists
+      become: true
+
+  when: nvm_profile | length != 0
+
+# wget (deault) or curl
+- name: Installing via curl or wget
+  block:
+  - name: Check if wget or curl is installed
+    command: "which {{ nvm_install }}"
+    register: cmd
+    changed_when: "cmd.rc != 0"
+
+  - name: Determine if install type wget
+    set_fact:
+      run_command: 'wget -qO-'
+    when: "'/wget' in cmd.stdout"
+
+  - name: Determine if install type curl
+    set_fact:
+      run_command: 'curl -o-'
+    when: "'/curl' in cmd.stdout"
+
+  - name: Create nvm_dir if it does not exist
+    file:
+      mode: 0775
+      path: "{{ nvm_dir }}"
+      state: directory
+    become: true
+    when: nvm_dir | length != 0
+
+  # There are some potential security concerns with piping the install.sh script to whatever shell alias is defined: Risk is Low but not absolute
+  # https://blog.dijit.sh//don-t-pipe-curl-to-bash
+  # https://news.ycombinator.com/item?id=12766049
+  # https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install
+  - name: Install NVM
+    shell: "{{ run_command }} https://raw.githubusercontent.com/creationix/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ nvm_profile }} {{ user_shell.alias }}"
+    args:
+      warn: false
+    register: nvm_result
+    changed_when: "'already installed' not in nvm_result.stdout"
+    failed_when:
+      - "'permission denied' in nvm_result.stderr"
+
+  - name: Update profile permissions to lock it down after writing
+    file:
+      mode: 0644
+      path: "{{ nvm_profile }}"
+    become: true
+    when: not profile_file.stat.exists
 
   when: nvm_install in ['curl', 'wget']
+
 
 # git
 - name: install via git
@@ -84,7 +152,8 @@
   when: "nvm_install == 'git'"
 
 - name: Check NVM Version # noqa 305
-  shell: bash -ic "nvm --version"
+  shell: "{{ user_shell.command + ' \"nvm --version\"' }}"
+  #shell: /usr/bin/zsh -ic "nvm --version"
   register: nvm_version_response
   changed_when: "nvm_version_response.rc != 0"
 
@@ -109,18 +178,18 @@
 # This scenario handles the first run/install of NVM because this will automatically
 # alias the specified version as default - This should handle most use cases
 - name: Install Node # noqa 305
-  shell: bash -ic "nvm install {{ nodejs_version }}"
+  shell: "{{ user_shell.command + ' \"nvm install ' +  nodejs_version + '\"' }}"
   register: node_version_response
   changed_when: "'already installed' not in node_version_response.stderr"
 
 # In the event there are multiple versions of Node being installed/used/upgraded
 # on the same machine we'll need to alias the default version accordingly
 - name: Set default version of Node if multiple versions exist # noqa 305
-  shell: bash -ic "nvm alias default {{ nodejs_version }}"
+  shell: "{{ user_shell.command + ' \"nvm alias default ' +  nodejs_version + '\"' }}"
   when:  default
 
 - name: Run whatever nvm_commands are there # noqa 305
-  shell: bash -ic "{{ item }}"
+  shell: "{{ user_shell.command + ' \"' +  item + '\"' }}"
   with_items:
     "{{ nvm_commands }}"
   when: nvm_commands | length > 0
@@ -149,4 +218,4 @@
       path: "{{ nvm_profile }}"
       state: absent
 
-  when: uninstall
+  when: uninstall | bool == True
