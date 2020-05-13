@@ -1,0 +1,73 @@
+---
+services: docker
+
+env:
+  global:
+    # - distribution: centos
+    #   version: 7
+    # - distribution: fedora
+    #   version: 26
+    # - distribution: fedora
+    #   version: 25
+    # - distribution: fedora
+    #   version: 24
+    # - distribution: ubuntu
+    #   version: xenial
+    # - distribution: ubuntu
+    #   version: trusty
+    - distribution: ubuntu
+      version: bionic
+    # - distribution: debian
+    #   version: stretch
+    # - distribution: debian
+    #   version: jessie
+  jobs:
+      role_name=ansible-role-nvm
+
+services:
+  - docker
+
+before_install:
+  - 'sudo docker pull ${distribution}:${version}'
+  - 'sudo docker build --no-cache --rm --file=tests/Dockerfile.${distribution}-${version} --tag=${distribution}-${version}:ansible ./tests'
+
+script:
+  - container_id=$(mktemp)
+  - echo ${container_id}
+  - 'docker run --detach --privileged --read-only --volume /sys/fs/cgroup:/sys/fs/cgroup --read-only --volume="${PWD}":/etc/ansible/roles/${role_name} ${distribution}-${version}:ansible > "${container_id}"'
+  #- 'docker run -a stderr -v /sys/fs/cgroup:/sys/fs/cgroup:ro --volume="${PWD}":/etc/ansible/roles/${role_name}:ro ${distribution}-${version}:ansible > "${container_id}"'
+  - 'docker ps -a'
+  - 'docker ps -a'
+  - 'docker ps -a'
+  - 'docker ps -a'
+  - 'docker exec "$(cat ${container_id})" env ANSIBLE_FORCE_COLOR=1 ansible-playbook -vvvv /etc/ansible/roles/${role_name}/tests/test.yml --syntax-check'
+  - 'docker ps -a'
+  - 'docker exec "$(cat ${container_id})" env ANSIBLE_FORCE_COLOR=1 ansible-playbook -vvvv /etc/ansible/roles/${role_name}/tests/test.yml'
+  - >
+    docker exec "$(cat ${container_id})" env ANSIBLE_FORCE_COLOR=1 ansible-playbook -v /etc/ansible/roles/${role_name}/tests/test.yml
+    | grep -q 'changed=0.*failed=0' && (echo 'Idempotence test: pass' && exit 0) || (echo 'Idempotence test: fail' && exit 1)
+  - 'sudo docker rm -f "$(cat ${container_id})"'
+
+# script:
+#   # Configure test script so we can run extra tests after playbook is run.
+#   - export container_id=$(date +%s)
+#   - export cleanup=false
+#
+#   # Download test shim.
+#   - wget -O ${PWD}/tests/test.sh https://gist.githubusercontent.com/geerlingguy/73ef1e5ee45d8694570f334be385e181/raw/
+#   - chmod +x ${PWD}/tests/test.sh
+#
+#   # Run tests.
+#   - ${PWD}/tests/test.sh
+#
+#   # Ensure Node.js is installed.
+#   - 'docker exec --tty ${container_id} env TERM=xterm which node'
+#   - 'docker exec --tty ${container_id} env TERM=xterm node -v'
+#
+#   # Ensure npm packages are installed globally.
+#   - 'docker exec --tty ${container_id} env TERM=xterm bash --login -c "npm list -g --depth=0 jslint"'
+#   - 'docker exec --tty ${container_id} env TERM=xterm bash --login -c "npm list -g --depth=0 node-sass"'
+#   - 'docker exec --tty ${container_id} env TERM=xterm bash --login -c "npm list -g --depth=0 yo"'
+#
+# notifications:
+#   webhooks: https://galaxy.ansible.com/api/v1/notifications/

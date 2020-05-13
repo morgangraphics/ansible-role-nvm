@@ -36,25 +36,34 @@ nvm_commands: []
 # Git :default dest: is the same as nvm_profile below.
 nvm_install: "wget"
 
-# The location of the bash profile in which Bash (or Dash depending on distribution) will
-# source the nvm command from. There are two potential contexts to consider,
+# The location of the SHELL profile that will source the nvm command from. There are two potential contexts to consider,
 # globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want)
-# e.g /etc/bash.bashrc
+# e.g /etc/bash.bashrc, /etc/profile, etc.
 #
 #  OR
 #
-#  On a per user basis tied to a specific user account e.g. /home/vagrant/.bashrc
-#  This role will create the appropriate profile file if it doesn't exist.
+# On a per user basis tied to a specific user account e.g. /home/vagrant/.bashrc
+# This role will create the appropriate profile file if it doesn't already exist.
 #
-#  If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real
-#  user on the box, then nvm will not work as you expect. become_user and nvm_profile path are
-#  symbiotic
+# If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real
+# user on the box, then nvm will not work as you expect. become_user and nvm_profile path are
+# symbiotic
 #
-# NVM Profile location Options are .profile, .bashrc, .bash_profile, .zshrc"
+# PLEASE BE AWARE OF THE LIMITATIONS OF EXPLICITLY DECLARING .profile OR .bash_profile FILES ON UBUNTU SYSTEMS
+# https://askubuntu.com/a/969923 Explains in detail
+# https://kb.iu.edu/d/abdy Shows options for each shell type
+#
+# NVM Profile location Options are:
+#
+# CSH: /etc/csh.cshrc, .cshrc
+# TSCH: /etc/csh.cshrc, .tcshrc, .cshrc
+# BASH: .bashrc
+# ZSH: .zshrc
+#
 nvm_profile: ".bashrc"
 
 # NVM source location - i.e. you host your own fork
-nvm_source: ''
+nvm_source: ""
 
 # Version of NVM to install
 nvm_version: "0.35.2"

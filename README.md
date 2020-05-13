@@ -251,7 +251,7 @@ print('hello-world')
     # WHAT'S HAPPENING?
     # 1. Set the default version of Node.js to version 10.15.0
     # 2. Install package dependencies with npm
-    # 3. Set the environment to Production, run the build JavaScript file 
+    # 3. Set the environment to Production, run the build JavaScript file
     # 4. Then run the production deploy script
     - role: ansible-role-nvm
       nodejs_version: "10.15.0"
@@ -361,7 +361,7 @@ Set default version of Node when maintaining/installing multiple versions
 
     default: false
 
-> *NVM will automatically alias the first run/installed version as "default" which is more than likely what people will use this role  for, however, this will allow for installation/upgrade of multiple versions on an existing machine*
+> NVM will automatically alias the first run/installed version as "default" which is more than likely what people will use this role  for, however, this will allow for installation/upgrade of multiple versions on an existing machine
 
 
 List of [NVM commands to run](https://github.com/creationix/nvm#usage). Default is an empty list.
@@ -378,16 +378,36 @@ NVM Installation directory.
 
 > *NVM will, by default, install the `.nvm` directory in the home directory of the user e.g. `/home/vagrant/.nvm`. You can override the installation directory by changing this variable e.g. `/opt/nvm` to put it into a global space (not tied to a specific user account) if you wanted. This variable will respect Ansible substitution variables e.g. `{{ansible_env.HOME}}`*
 
-NVM Profile location Options are .profile, .bashrc, .bash_profile, .zshrc
+NVM Profile location Options are .bashrc, .cshrc, .tcshrc, .zshrc
 
-    nvm_profile: ".bashrc"
+nvm_profile: ".bashrc"
 
-> *The location of the bash profile in which Bash (or Dash depending on distribution) will source the `nvm` command from. There are two potential contexts/logins/shell to consider, globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want) e.g `/etc/bash.bashrc`*
+
+> *The location of the SHELL profile that will source the nvm command from. There are two potential contexts to consider, globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want) e.g **/etc/bash.bashrc**, **/etc/profile**, etc.*
 
 > **OR**
 
-> *On a per user basis tied to a specific user account e.g. `/home/vagrant/.bashrc` This role will create the appropriate profile file if it does not exist.
-:warning: If you specify nvm_profile: `"/home/node-user/.bashrc"` and the `node-user` is not a real user on the box, then nvm will not work as you expect.*
+> *On a per user basis tied to a specific user account e.g. /home/vagrant/.bashrc.*
+>  *This role will create the appropriate profile file if it doesn't already exist.*
+
+> *If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real  user on the box, then nvm will not work as you expect. become_user and nvm_profile path are  symbiotic*
+>
+> :warning: **PLEASE BE AWARE OF THE LIMITATIONS OF EXPLICITLY DECLARING .profile OR .bash_profile FILES ON UBUNTU SYSTEMS**
+>
+>  https://askubuntu.com/a/969923 Explains in detail
+>
+>  https://kb.iu.edu/d/abdy Shows options for each shell type
+>
+>  NVM Profile location Options are:
+  >
+  >  **BASH**: .bashrc
+  >
+  >  **CSH**: /etc/csh.cshrc, .cshrc
+  >
+  >  **TSCH**: /etc/csh.cshrc, .tcshrc, .cshrc
+  >
+  >  **ZSH**: .zshrc
+
 
 NVM source location i.e. you host your own fork of [NVM](https://github.com/creationix/nvm)
 
@@ -412,10 +432,14 @@ None.
 
 ## Change Log
 
+**1.4.0**
+* Code Linting, Indempotency updates for CI/CD testing
+* Addressed version check as reported by [@Jamesking56](https://github.com/morgangraphics/ansible-role-nvm/issues/18)
+
 **1.3.0**
 * Addressed `nvm: command not found error` bug as reported by [@eyekelly](https://github.com/morgangraphics/ansible-role-nvm/issues/16).
 * Updated documentation in greater detail about user context/session/shells to guard against `nvm: command not found error`.
-* Updated default variable explanations 
+* Updated default variable explanations
 * Reworked documentation and examples surrounding `nvm_commands`
 * NVM version bump
 

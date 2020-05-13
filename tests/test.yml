@@ -1,0 +1,58 @@
+---
+
+# - hosts: centos-6
+#   pre_tasks:
+#     - name: Update respective package caches.
+#       package:
+#         name: "{{ item }}"
+#         state: present
+#       with_items:
+#         - git
+#   roles:
+#     - role: ansible-role-nvm
+#       nodejs_version: "6.2.0"
+
+# - hosts: plu2
+#   roles:
+#     - role: ansible-role-nvm
+#       nodejs_version: "8.15.0"
+#
+#     - role: ansible-role-nvm
+#       nodejs_version: "10.15.0"
+#
+# - hosts: plu3
+#   roles:
+#     - role: ansible-role-nvm
+#       nodejs_version: "8.15.0"
+#
+#     - role: ansible-role-nvm
+#       nodejs_version: "10.15.0"
+#       default: true
+#
+# - hosts: plu4
+#   roles:
+#     - role: ansible-role-nvm
+#       nodejs_version: "8.15.0"
+#       nvm_commands:
+#         - 'nvm exec 8.15.0 node --version'
+#         - 'nvm exec 8.15.0 npm --version'
+#
+#     - role: ansible-role-nvm
+#       nodejs_version: "10.15.0"
+#       default: true
+#       nvm_commands:
+#         - 'nvm exec default node --version'
+#         - 'nvm exec default npm --version'
+#
+# - hosts: plu5
+#   roles:
+#     - role: ansible-role-nvm
+#       autocomplete: true
+#
+#     - role: ansible-role-nvm
+#       uninstall: true
+#
+- hosts: ubuntu-bionic
+  roles:
+    - role: ansible-role-nvm
+      autocomplete: true
