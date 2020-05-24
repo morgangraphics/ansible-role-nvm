@@ -431,6 +431,8 @@ Uninstall NVM, will remove .nvm directory and clean up `{{ nvm_profile }}` file
 None.
 
 ## Change Log
+**1.4.1**
+* Addressed version check as reported by [@DanHulton](https://github.com/morgangraphics/ansible-role-nvm/issues/21)
 
 **1.4.0**
 * Code Linting, Indempotency updates for CI/CD testing
