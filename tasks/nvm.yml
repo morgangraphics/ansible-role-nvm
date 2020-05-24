@@ -47,7 +47,7 @@
     - name: "!WARNING! set unrecommended default for any other nvm_profile value !WARNING!"
       set_fact:
         user_shell: { 'command': '/etc/bash -ic', 'alias': 'bash' }
-      when: (shell_path is undefined) or (found_path | bool == False)
+      when: (shell_path is undefined) or (found_path | length == 0)
 
     - name: does profile file exist
       stat:
@@ -217,4 +217,4 @@
       path: "{{ nvm_profile }}"
       state: absent
 
-  when: uninstall | bool == True
+  when: uninstall | bool
