@@ -461,10 +461,11 @@ Uninstall NVM, will remove .nvm directory and clean up `{{ nvm_profile }}` file
 None.
 
 ## Change Log
+---
+
 **1.4.2**
 * Updated documentation to fix missing `become: true` when using `become_user: some-user` as reported by  [@jfoliveira](https://github.com/morgangraphics/ansible-role-nvm/issues/23)
 
-## Change Log
 **1.4.1**
 * Addressed version check as reported by [@DanHulton](https://github.com/morgangraphics/ansible-role-nvm/issues/21)
 
