@@ -32,7 +32,7 @@ Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
 ---
 
 ## :warning: WARNING!
-DO NOT RUN THIS ROLE AS ROOT!
+DO NOT RUN THIS ROLE AS ROOT! (e.g. `become: true|yes|1`)
 
 There are a few reasons for this,
 1. It is an unneeded privilege escalation security risk, **it is highly unlikely that you need to run every task in every role as `root_user`**. If, for whatever reason, you do need to run everything as `root_user`, reconsider what the role is doing and why it needs root access for everything.
@@ -44,8 +44,8 @@ There are a few reasons for this,
 BAD :thumbsdown:
 ```yaml
 - hosts: all
-  become: yes           # THIS RUNS ALL TASKS, FOR ALL HOSTS, AS ROOT_USER
-  become_method: sudo   # THIS RUNS ALL TASKS, FOR ALL HOSTS, AS ROOT_USER
+  become: true           # THIS RUNS ALL TASKS, FOR ALL HOSTS, AS ROOT_USER
+  become_method: sudo    # THIS RUNS ALL TASKS, FOR ALL HOSTS, AS ROOT_USER
 
   roles:
     - role: ansible-role-nvm
@@ -71,7 +71,7 @@ BETTER :thumbsup:
 
     - role: some-other-role
       ...
-      become: yes             # THIS SCOPES ALL TASKS, ONLY FOR THE SOME-OTHER-ROLE, AS ROOT_USER
+      become: true            # THIS SCOPES ALL TASKS, ONLY FOR THE SOME-OTHER-ROLE, AS ROOT_USER
       become_method: sudo     # THIS SCOPES ALL TASKS, ONLY FOR THE SOME-OTHER-ROLE, AS ROOT_USER
 
 ```
@@ -86,11 +86,12 @@ BEST :metal:
       nodejs_version: "8.16.0"
       nvm_commands:
        - "nvm exec default npm install"
+      become: true            # THIS WILL CHANGE THE LOGIN CONTEXT TO USE THE USER BELOW
       become_user: ec2-user   # THIS INSTALLS NVM IN THE CONTEXT OF THE EC2-USER/DEFAULT USER
 
     - role: some-other-role
       ...
-      become: yes             # THIS SCOPES ALL TASKS, ONLY FOR THE SOME-OTHER-ROLE, AS ROOT_USER
+      become: true            # THIS SCOPES ALL TASKS, ONLY FOR THE SOME-OTHER-ROLE, AS ROOT_USER
       become_method: sudo     # THIS SCOPES ALL TASKS, ONLY FOR THE SOME-OTHER-ROLE, AS ROOT_USER
 
 ```
@@ -228,6 +229,13 @@ print('hello-world')
 ```
 *:warning: You must include a script header for this to work properly*
 
+OR
+
+run some arbitrary bash command
+
+```bash
+ls -al >> output.txt
+```
 
 
 `nvm_commands` make it very easy to set up a Node Application and Node API layer running on different version of Node.js on the same host
@@ -298,7 +306,29 @@ Another example
 
 **Whatever command line arguments you use to start your application, or command scripts you've declared in your package.json file can be placed inside the `nvm_commands: []` section of this role.**
 
+```yaml
+- hosts: host1
 
+  pre_tasks:
+
+    - name: add new user
+      user:
+        name: "test-user"
+      become: true
+
+  roles:
+
+    - role: ansible-role-nvm
+      nodejs_version: "8.16.0"
+      nvm_profile: "/home/test-user/.bashrc"
+      nvm_commands:
+        - "whoami"
+        - "node --version"
+        - "nvm --version"
+        - "npm --version"
+      become_user: test-user
+      become: true
+```
 
 
 
@@ -308,7 +338,7 @@ Another example
 
 1. If you have `default: true` explicitly declared as a role variable **AND** `- "nvm alias default <SOME_OTHER_VERSION>"` as part of your `nvm_commands` the version with `default: true` will **ALWAYS** be executed **first**. This is because we need Node.js to be available before doing anything else.  
 
-1. NVM is stateless in that if you have multiple versions of Node.js installed on a machine, you may have to run `nvm use <VERSION>` as part of your script to run the Node.js version you want/expect. However, it is higly recommended that you alias your versions accordingly and reference them that way. See the examples above.
+1. NVM is stateless in that if you have multiple versions of Node.js installed on a machine, you may have to run `nvm use <VERSION>` as part of your script to run the Node.js version you want/expect. However, it is highly recommended that you alias your versions accordingly and reference them that way. See the examples above.
 
 <a name='#issues'></a>
 ## Issues
@@ -316,7 +346,7 @@ Another example
 
 #### `"nvm: command not found" error`
 
-This is often the result of running the role in another user context then the nvm and node user context will run inside the machine. If you add `become: true` to all the roles in your playbook to get around errors those roles throw due to permission issues, then this role will install nvm under the `ROOT_USER` (usually `/root/.bashrc`). **It is more than likely that you will want to run nvm and node as a default user e.g. vagrant, ec2-user, ubuntu etc.** If, for whatever reason, you cannot remove the `become: true` for everything, you can get around the `become: true` issue by specifying `become_user: ec2-user` for this role alone. See [bash: nvm command not found
+This is often the result of running the role in another user context then the nvm and node user context will run inside the machine. If you add `become: true` to all the roles in your playbook to get around errors those roles throw due to permission issues, then this role will install nvm under the `ROOT_USER` (usually `/root/.bashrc`). **It is more than likely that you will want to run nvm and node as a default user e.g. vagrant, ec2-user, ubuntu etc.** If, for whatever reason, you cannot remove the `become: true` for everything, you can get around the `become: true` issue by specifying `become: true` **AND** `become_user: ec2-user` for this role alone. See [bash: nvm command not found
 ](https://github.com/morgangraphics/ansible-role-nvm/issues/16) for a detailed explanation of the issue
 
 
@@ -390,7 +420,7 @@ nvm_profile: ".bashrc"
 > *On a per user basis tied to a specific user account e.g. /home/vagrant/.bashrc.*
 >  *This role will create the appropriate profile file if it doesn't already exist.*
 
-> *If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real  user on the box, then nvm will not work as you expect. become_user and nvm_profile path are  symbiotic*
+> *If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real  user on the box, then nvm will not work as you expect. become, become_user and nvm_profile path are symbiotic*
 >
 > :warning: **PLEASE BE AWARE OF THE LIMITATIONS OF EXPLICITLY DECLARING .profile OR .bash_profile FILES ON UBUNTU SYSTEMS**
 >
@@ -416,7 +446,7 @@ NVM source location i.e. you host your own fork of [NVM](https://github.com/crea
 
 NVM version to install
 
-    nvm_version: "0.35.0"
+    nvm_version: "0.35.2"
 
 
 Uninstall NVM, will remove .nvm directory and clean up `{{ nvm_profile }}` file
@@ -429,6 +459,10 @@ Uninstall NVM, will remove .nvm directory and clean up `{{ nvm_profile }}` file
 ## Dependencies
 
 None.
+
+## Change Log
+**1.4.2**
+* Updated documentation to fix missing `become: true` when using `become_user: some-user` as reported by  [@jfoliveira](https://github.com/morgangraphics/ansible-role-nvm/issues/23)
 
 ## Change Log
 **1.4.1**
