@@ -1,6 +1,6 @@
 ---
 #SEMVER
-role_version: "1.4.2"
+role_version: "1.4.3"
 
 role_repo: "https://github.com/morgangraphics/ansible-role-nvm"
 
@@ -66,7 +66,7 @@ nvm_profile: ".bashrc"
 nvm_source: ""
 
 # Version of NVM to install
-nvm_version: "0.35.2"
+nvm_version: "0.38.0"
 
 # Uninstall NVM
 uninstall: false
