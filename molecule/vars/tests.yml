@@ -1,0 +1,7 @@
+---
+
+autocomplete:
+  autocomplete: false
+
+nodejs_version_custom:
+  nodejs_version: v12.13.0

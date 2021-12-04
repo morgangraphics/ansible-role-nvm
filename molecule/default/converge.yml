@@ -1,0 +1,56 @@
+---
+- name: Converge
+  hosts: all
+  # tasks:
+  #   - name: "Include ansible-role-nvm"
+  #     include_role:
+  #       name: "ansible-role-nvm"
+
+  # Roles IMPORTED (not included) in this fashion will have variables overridden
+  # AND PERSISTED throughout the rest of the playbook
+  vars:
+     playbook: &playbook "{{ active_playbook }}"
+  #    playbook: &playbook "autocomplete"
+     tests: "{{ active_test_file | default(active_playbook, true)}}"
+  #    tests: "../tests/test_autocomplete.yml"
+
+
+  tasks:
+
+    - name: debug some variables |  1
+      debug: 
+        var: playbook
+
+    - name: debug some variables |  2
+      debug: 
+        var: tests
+
+    - name: include testing vars
+      include_vars:
+        file: "../vars/tests.yml"
+        name: vars_test
+
+    - name: debug some variables |  3
+      debug: 
+        var: vars_test
+
+    # - name: register a variable |  4
+    #   command: 'echo {{ playbook }}'
+    #   register: dans_new_var0
+
+    # - set_fact: dans_new_var="{{ vars_test[playbook] }}"
+
+    # - set_fact: dans_new_var2="############## HI \##############"
+
+    # - name: debug some variables |  2
+    #   debug: 
+    #     var: vars["dans_new_var"]
+
+    # - name: debug some variables |  3
+    #   debug: 
+    #     var: vars[dans_new_var]
+    # - debug: var=autocomplete
+
+    - name: "Import {{ playbook }}.yml tasks"
+      import_tasks: "./tasks_{{ playbook }}.yml"
+      #include_tasks: "./playbook_{{ playbook }}.yml"

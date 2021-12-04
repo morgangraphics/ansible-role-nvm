@@ -1,0 +1,60 @@
+---
+# - name: Autocomplete Tests
+#   hosts: all
+  
+#   tasks:
+
+    # - name: debug some variables |  14
+    #   debug:
+    #     var: vars.autocomplete
+
+    # # - name: "Bail"
+    # #   fail:
+
+    # This is checking for the presence of a string in a file. As we're just checking for the string
+    # and not doing anything else with it, we set changed_when: false for the sole purpose of idempotency
+    # if the regex is found, it will technically set the changed: true flag with a message satung "line replaced"
+    # We check for that string when asserting the results 
+    - name: "Check the .bashrc file to see if autocomplete was installed or not"
+      lineinfile: 
+        path: "$HOME/.bashrc"
+        regexp: "\\$NVM_DIR\\/bash_completion"
+        line: ""
+      check_mode: yes
+      register: test_autocomplete_infile
+      changed_when: false
+
+
+    - name: TEST | testing autocomplete config | not installed
+      block:
+
+        - name: Assertion | autocomplete not installed
+          assert:
+            that:
+              - "test_autocomplete_infile.msg == ''"
+
+            success_msg: "All autocomplete not installed assertions passed"
+            fail_msg: "Autocomplete not installed assertions failed"
+
+      when: not (autocomplete | bool)
+
+
+    - name: TEST | testing autocomplete config | installed
+      block:
+
+        - name: test automcomplete command
+          command: "/bin/bash -ic 'compgen -c nvm'"
+          register: autocomplete_tab
+          changed_when: false
+
+        - name: Assertion | autocomplete installed
+          assert:
+            that:
+              - "test_autocomplete_infile.msg == 'line replaced'"
+              - "'nvm_alias' and 'nvm_ls_current' in autocomplete_tab.stdout"
+
+            success_msg: "All autocomplete installed assertions passed"
+            fail_msg: "Autocomplete installed assertions failed"
+
+
+      when: autocomplete | bool

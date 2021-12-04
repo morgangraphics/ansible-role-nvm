@@ -1,0 +1,134 @@
+---
+
+  # When including a role like below, then running tasks after the include, the overide role variables
+  # are ONLY persisted throughout the playbook when declared like: 
+  #
+  # role: ansible-role-nvm
+  #    vars:
+  #      autocomplete: false
+  #
+  # When Declared like:
+  #
+  # role: ansible-role-nvm
+  # autocomplete: false
+  #
+  # the variable will not be persisted to thr rest of the playbook/tasks
+
+  # =================================================================
+  # Node Version: Test 1
+  # Leaving the default value (LTS) for nodejs_version
+  # =================================================================
+
+  # - hosts: localhost
+  #   gather_facts: false
+
+  #   vars:
+  #     playbook: "{{ active_playbook }}"
+  #     tests: "{{ active_test_file | default(active_playbook, true)}}"
+
+  #   roles:
+      
+  #     # Default: nodejs_version:  lts
+  #     - role: ansible-role-nvm
+
+  #   tasks:
+
+  #     - name: "Import {{ tests }}.yml file"
+  #       include: "../tests/tests_{{ tests }}.yml"
+
+
+  # =================================================================
+  # Node Version: Test 2
+  # Changing nodejs_version to v12.13.0
+  # =================================================================
+
+  # - hosts: localhost
+  #   gather_facts: false
+
+  #   vars:
+  #     playbook: "{{ active_playbook }}"
+  #     tests: "{{ active_test_file | default(active_playbook, true)}}"
+
+  #   roles:
+
+  #       # Non Default Value
+  #       - role: ansible-role-nvm
+  #         vars:
+  #           nodejs_version: v12.13.0
+    
+  #   tasks:
+
+  #       - name: "Import {{ tests }}.yml file"
+  #         include_tasks: "../tests/tests_{{ tests }}.yml"
+
+
+  # =================================================================
+  # Node Version: Test 3
+  # Adding 2 different nodejs_versions v12.13.0 and v16.13.0 - NO DEFAULT
+  # 12.13.0 should be the default version
+  # =================================================================
+
+  # - hosts: localhost
+  #   gather_facts: false
+
+  #   vars:
+  #     playbook: "{{ active_playbook }}"
+  #     tests: "{{ active_test_file | default(active_playbook, true)}}"
+
+  #   roles:
+
+  #       # Localhost testing Only
+  #       # Remember, when overiding a role variable and you don't want it to persist to other instances of the role
+  #       # use the notation below (no vars: key)
+  #       - role: ansible-role-nvm
+  #         uninstall: true
+  #         when: vars.ansible_play_name == "localhost"
+
+  #       - role: ansible-role-nvm
+  #         vars:
+  #           nodejs_version: v12.13.0
+
+  #       - role: ansible-role-nvm
+  #         vars:
+  #           nodejs_version: v16.13.0
+    
+  #   tasks:
+
+  #       - name: "Import {{ tests }}.yml file"
+  #         include_tasks: "../tests/tests_{{ tests }}.yml"
+
+  # =================================================================
+  # Node Version: Test 4
+  # Adding 2 different nodejs_versions v8.16.0 and v14.18.2 - WITH DEFAULT
+  # =================================================================
+
+  - hosts: localhost
+    gather_facts: false
+
+    vars:
+      playbook: "{{ active_playbook }}"
+      tests: "{{ active_test_file | default(active_playbook, true)}}"
+
+    roles:
+
+        # Localhost testing Only
+        # Remember, when overiding a role variable and you don't want it to persist to other instances of the role
+        # use the notation below (no vars: key)
+        - role: ansible-role-nvm
+          uninstall: true
+          when: vars.ansible_play_name == "localhost"
+
+
+        - role: ansible-role-nvm
+          vars:
+            nodejs_version: v8.16.0
+
+        - role: ansible-role-nvm
+          vars:
+            nodejs_version: v14.18.2
+            default: true
+    
+    tasks:
+
+        - name: "Import {{ tests }}.yml file"
+          include_tasks: "../tests/tests_{{ tests }}.yml"

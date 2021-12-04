@@ -1,0 +1,58 @@
+# Use an official Ubuntu 16.04 runtime as a parent image
+FROM ubuntu:xenial as base
+
+LABEL name="MORGANGRAPHICS Secure Python Container Image" \
+    maintainer="MORGANGRAPHICS, INC" \
+    version=0.0.1
+ARG PYTHON=3.6
+ARG ANSIBLE=2.0
+ARG USER=ansible-test
+ARG PYTHON_VERSION=$PYTHON
+ARG ANSIBLE_VERSION=$ANSIBLE
+
+
+# Update the base OS and install Curl, git, python3, sudo, wget & pip
+RUN apt-get --yes update \
+    && apt-get dist-upgrade \
+    && apt-get --yes --no-install-recommends install  \
+      build-essential \
+      curl \
+      git \
+      software-properties-common \
+      sudo \
+      wget \
+    && adduser --disabled-password --gecos '' ${USER} \
+    && adduser ${USER} sudo \
+    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+# PIP && Python
+RUN add-apt-repository --yes ppa:deadsnakes/ppa \
+    && apt-get update \
+    && apt-get install --yes --no-install-recommends python${PYTHON_VERSION} \
+      python${PYTHON_VERSION}-dev \
+    && update-alternatives --install /usr/bin/python python /usr/bin/python${PYTHON_VERSION} 10 \
+    && curl https://bootstrap.pypa.io/get-pip.py -o /root/get-pip.py \
+    && $(which python) /root/get-pip.py \
+    && update-alternatives --install /usr/bin/pip pip $(which pip3) 10 \
+    && rm -rf /var/lib/apt/lists*
+
+# Warn users if they are running as root. See the "Invoked with name sh" section of
+# https://www.gnu.org/software/bash/manual/html_node/Bash-Startup-Files.html .
+# See also https://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/etc.html .
+RUN printf "%s" "if [ "\$\(whoami\)" = 'root' ]; then printf \"\n\033[1;31m%s\033[0m\n\n\" \"WARNING: YOU ARE RUNNING AS THE ROOT USER!\"; fi" \
+ >> /etc/profile.d/warn-root.sh
+
+# Run install as user
+USER ${USER}
+# Set working Directory
+WORKDIR /home/${USER}/
+
+# Copy Ansible Test inventory file
+COPY ./inventory /etc/ansible/
+COPY ./requirements-ansible-${ANSIBLE_VERSION}.txt .
+
+# Update the Path Environment Variable to include the local Python install
+ENV PATH "$PATH:/home/${USER}/.local/bin"
+
+# Install the App requirements
+RUN pip install -r requirements-ansible-${ANSIBLE_VERSION}.txt

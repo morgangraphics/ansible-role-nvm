@@ -1,0 +1,62 @@
+---
+# # This is an example playbook to execute Ansible tests.
+
+# - name: Verify
+#   hosts: all
+#   gather_facts: false
+#   tasks:
+#   - name: Example assertion
+#     assert:
+#       that: true
+
+
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+
+
+# Include the Playbook passing in some test variables
+- name: "Import {{ active_playbook }}.yml"
+  import_playbook: "./playbook_{{ active_playbook }}.yml"
+#   vars:
+#     <<: "playbook_vars[playbook]"
+
+# - name: "Import {{ playbook }}.yml tasks"
+#   import_playbook: "./playbook_{{ playbook }}.yml"
+#   vars:
+#     <<: vars_default
+
+  # tasks:
+
+  #   - name: debug some variables |  10
+  #     debug: 
+  #       var: vars
+
+  #   - name: debug some variables |  11
+  #     debug: 
+  #       var: playbook
+
+  #   - name: debug some variables |  12
+  #     debug: 
+  #       var: tests
+
+  #   - name: include vars | test
+  #     include_vars:
+  #       file: "../vars/tests.yml"
+  #       name: vars_test
+
+  #   - name: include vars | default
+  #     include_vars:
+  #       file: "../../defaults/main.yml"
+  #       name: vars_default
+
+  #   - name: "Import {{ tests }}.yml tests"
+  #     import_playbook: ../tests/tests_{{ tests }}.yml
+
+  #   - name: "Import {{ tests }}.yml tests"
+  #     import_tasks: ../tests/tests_{{ tests }}.yml
+      #include_playbook: ../tests/tests_{{ tests }}.yml
+
+    # - debug: var=vars

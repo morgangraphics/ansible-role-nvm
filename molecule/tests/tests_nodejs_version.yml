@@ -1,0 +1,98 @@
+---
+
+
+  - name: include vars | default
+    include_vars:
+      file: "../../defaults/main.yml"
+      name: vars_default
+
+  # - name: debug some variables |  13
+  #   debug:
+  #     var: vars
+
+  # - name: debug some variables |  14
+  #   debug:
+  #     var: vars.nodejs_version
+  
+  # - name: debug some variables |  15
+  #   debug:
+  #     var: vars_default.nodejs_version
+
+  # - name: "Bail"
+  #   fail:
+
+
+  - name: TEST | testing nodejs_version | defalt
+    block:
+
+      - name: TEST | Get the list of LTS node versions
+        shell: "bash -ic 'nvm ls-remote --lts --no-colors'"
+        register: lts_versions
+        changed_when: false
+
+      # node_version_response is a fact set inside the role
+      - name: Assertion | nodejs_version is version {{ vars_default.nodejs_version }}
+        assert:
+          that:
+            - "(lts_versions.stdout_lines | last | regex_search('v[0-9.]+')) in nvm_node_version_response.stdout"
+
+          success_msg: "All nodejs_version default assertions passed"
+          fail_msg: "Default nodejs_version assertions failed"
+
+    when: nodejs_version == '--' + vars_default.nodejs_version
+
+
+  - name: TEST | testing nodejs_version | custom version - generic
+    block:
+
+      # node_version_response is a fact set inside the role
+      - name: Assertion | nodejs_version is custom version {{ nodejs_version }}
+        assert:
+          that:
+            - "nodejs_version in nvm_node_version_response.stdout"
+
+          success_msg: "All custom nodejs_version assertions passed"
+          fail_msg: "Custom nodejs_version assertions failed"
+
+    when: nodejs_version != '--' + vars_default.nodejs_version
+
+
+  - name: TEST | Get the list of installed node versions
+    shell: "bash -ic 'nvm ls --no-colors'"
+    register: installed_versions
+    changed_when: false
+
+
+  - name: TEST | testing nodejs_version | custom version - expected
+    block:
+
+      - name: Assertion | nodejs_version is custom version v12.13.0 (first one in as default)
+        assert:
+          that:
+            - "'v12.13.0' in installed_versions.stdout"
+            - "'v16.13.0' in installed_versions.stdout"
+            - "'default -> v12.13.0' in installed_versions.stdout"
+
+          success_msg: "All expected custom nodejs_version assertions passed"
+          fail_msg: "Expected custom nodejs_version assertions failed"
+
+    when: nodejs_version in ['v12.13.0', 'v16.13.0']
+
+  - name: TEST | testing nodejs_version | custom version - expected with default
+    block:
+
+      - name: Assertion | nodejs_version is custom version v14.18.2 (set as default)
+        assert:
+          that:
+            - "'v8.16.0' in installed_versions.stdout"
+            - "'v14.18.2' in installed_versions.stdout"
+            - "'default -> v14.18.2' in installed_versions.stdout"
+
+          success_msg: "All expected custom nodejs_version assertions passed"
+          fail_msg: "Expected custom nodejs_version assertions failed"
+
+    when: nodejs_version in ['v8.16.0', 'v14.18.2']
+
+
+
+

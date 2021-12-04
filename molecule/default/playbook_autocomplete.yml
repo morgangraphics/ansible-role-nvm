@@ -1,0 +1,97 @@
+---
+
+  # When including a role like below, then running tasks after the include, the overide role variables
+  # are ONLY persisted throughout the playbook when declared like: 
+  #
+  # role: ansible-role-nvm
+  #    vars:
+  #      autocomplete: false
+  #
+  # When Declared like:
+  #
+  # role: ansible-role-nvm
+  # autocomplete: false
+  #
+  # the variable will not be persisted to thr rest of the playbook/tasks
+
+  # =================================================================
+  # Autocomplete: Test 1
+  # Leaving the default value (true) for Autocomplete
+  # =================================================================
+
+  - hosts: localhost
+    gather_facts: false
+
+    vars:
+      playbook: "{{ active_playbook }}"
+      tests: "{{ active_test_file | default(active_playbook, true)}}"
+
+    roles:
+      
+      # Default: autocomplete:  true
+      - role: ansible-role-nvm
+
+    tasks:
+
+      - name: "Import {{ tests }}.yml file"
+        include: "../tests/tests_{{ tests }}.yml"
+
+
+  # =================================================================
+  # Autocomplete: Test 2
+  # Overriding the default value (true) for Autocomplete
+  # =================================================================
+  - hosts: localhost
+    gather_facts: false
+
+    vars:
+      playbook: "{{ active_playbook }}"
+      tests: "{{ active_test_file | default(active_playbook, true)}}"
+
+    roles:
+
+        # Non Default Value
+        - role: ansible-role-nvm
+          vars:
+            autocomplete: false
+    
+    tasks:
+
+        - name: "Import {{ tests }}.yml file"
+          include_tasks: "../tests/tests_{{ tests }}.yml"
+
+
+
+  # pre_tasks:
+
+  #   - name: include vars | default
+  #     include_vars:
+  #       file: "../../defaults/main.yml"
+  #       name: vars_default
+
+  #   - name: include vars | test
+  #     include_vars:
+  #       file: "../vars/tests.yml"
+  #       name: vars_test
+
+  #   - name: debug some variables |  10
+  #     debug: 
+  #       var: vars_default
+    
+  #   - name: debug some variables |  11
+  #     debug: 
+  #       var: vars_test
+
+  #   - name: debug some variables | 12
+  #     debug: 
+  #       var: "{{ vars | combine(vars_test) | to_nice_json }}"
+
+  #   - name: combine some variables | 13
+  #     set_fact: 
+  #       playbook_vars: "{{ vars | combine(vars_test) | to_json }}[playbook]"
+
+  #   - name: debug some variables |  14
+  #     debug: 
+  #       var: playbook_vars
+
+ 

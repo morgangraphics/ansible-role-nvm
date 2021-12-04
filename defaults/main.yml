@@ -1,0 +1,76 @@
+---
+#SEMVER
+role_version: "1.4.2"
+
+role_repo: "https://github.com/morgangraphics/ansible-role-nvm"
+
+# Set the specific version of Node.js to install ("4.8.0", "6.11.0").
+# use lts for latest Long Term Support Release
+# Version numbers from Nodesource: https://github.com/nodesource/distributions
+nodejs_version: "lts"
+
+# NVM has a bash autocomplete functionality for when a user logs into a machine. Cool feature
+# but only works when a human logs into said machine.
+# Now is installed by default - true will preserve the feature
+autocomplete: true
+
+# Install NVM from scratch removing any and all references to it.
+# This greps all files in /home /root and /etc for refrences as well as
+# looking for any folder with nvm in it
+clean_install: false
+
+# NVM will automatically alias First Run version as default which is more than likely
+# what people will use this for
+# This will allow for installation/upgrade of multiple versions on an existing
+# machine for the scenarios described in
+# https://github.com/morgangraphics/ansible-role-nvm/pull/7#issuecomment-481423099
+default: false
+
+# AdHoc NVM Commands
+nvm_commands: []
+
+# NVM Default directory
+# NVM will, by default, install the .nvm directory in the home directory of the user e.g. /home/vagrant/.nvm
+# You can override the installation directory by changing this variable e.g. /opt/nvm to put it into a
+# global space (meaning not tied to a specific user account) if you wanted. This variable will respect
+# Ansible substitution variables e.g. nvm_dir: "{{ansible_env.HOME}}/.nvm"
+nvm_dir: ""
+
+# Options are wget, curl, git
+# Git :default dest: is the same as nvm_profile below.
+nvm_install: "wget"
+
+# The location of the SHELL profile that will source the nvm command from. There are two potential contexts to consider,
+# globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want)
+# e.g /etc/bash.bashrc, /etc/profile, etc.
+#
+#  OR
+#
+# On a per user basis tied to a specific user account e.g. /home/vagrant/.bashrc
+# This role will create the appropriate profile file if it doesn't already exist.
+#
+# If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real
+# user on the box, then nvm will not work as you expect. become_user and nvm_profile path are
+# symbiotic
+#
+# PLEASE BE AWARE OF THE LIMITATIONS OF EXPLICITLY DECLARING .profile OR .bash_profile FILES ON UBUNTU SYSTEMS
+# https://askubuntu.com/a/969923 Explains in detail
+# https://kb.iu.edu/d/abdy Shows options for each shell type
+#
+# NVM Profile location Options are:
+#
+# CSH: /etc/csh.cshrc, .cshrc
+# TSCH: /etc/csh.cshrc, .tcshrc, .cshrc
+# BASH: .bashrc
+# ZSH: .zshrc
+#
+nvm_profile: ".bashrc"
+
+# NVM source location - i.e. you host your own fork
+nvm_source: ""
+
+# Version of NVM to install
+nvm_version: "0.35.3"
+
+# Uninstall NVM
+uninstall: false
