@@ -243,12 +243,17 @@
     shell: "{{ user_shell.executable + ' ' + user_shell.flags + ' \"nvm alias default ' +  nodejs_version + '\"' }}"
     when:  default
 
+  - name: debug some variables |  10
+    debug: 
+      var: nvm_commands
+
   - name: Run whatever nvm_commands are there # noqa 305
-    shell: "{{ user_shell.executable + ' ' + user_shell.flags + ' \"' +  item + '\"' }}"
+    command: "{{ user_shell.executable + ' ' + user_shell.flags + ' \"' +  item + '\"' }}"
     register: nvm_commands_response
-    with_items:
+    loop:
       "{{ nvm_commands }}"
     when: nvm_commands | length > 0
+    failed_when: nvm_commands_response.rc != 0
 
 
   # REMOVE AUTOCOMPLETE

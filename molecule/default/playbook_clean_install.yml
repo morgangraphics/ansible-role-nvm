@@ -1,0 +1,33 @@
+---
+
+
+  # =================================================================
+  # Clean Install: Test 1
+  # Install a version, then set clean_install: true to remove 
+  # all previous installs
+  # =================================================================
+
+  - hosts: localhost
+    gather_facts: false
+
+    vars:
+      playbook: "{{ active_playbook }}"
+      tests: "{{ active_test_file | default(active_playbook, true)}}"
+
+    roles:
+      
+      - role: ansible-role-nvm
+        vars:
+          nodejs_version: v8.16.0
+
+      - role: ansible-role-nvm
+        vars:
+          clean_install: true
+          nodejs_version: v12.13.0
+
+    tasks:
+
+      - name: "Import {{ tests }}.yml file"
+        include: "../tests/tests_{{ tests }}.yml"
+
+

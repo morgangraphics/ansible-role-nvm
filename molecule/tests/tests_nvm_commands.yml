@@ -1,0 +1,32 @@
+---
+
+
+
+  - name: TEST | testing nvm_commands | 
+    block:
+
+      # node_version_response is a fact set inside the role
+      - name: Assertion | nvm_commands
+        assert:
+          that:
+            - "nodejs_version in nvm_node_version_response.stdout"
+
+          success_msg: "All custom nodejs_version assertions passed"
+          fail_msg: "Custom nodejs_version assertions failed"
+
+    when: nvm_commands | length > 0
+
+
+
+  # - name: "TEST | testing nvm commands"
+  #   assert:
+  #     that:
+  #       - "nodejs_version in nvm_commands_response.results[0].stdout"
+  #       - "'Environment = production' in nvm_commands_response.results[0].stdout"
+  #       - "'hello-world - from the hi.js file' in nvm_commands_response.results[0].stdout"
+  #       - "nodejs_version in nvm_commands_response.results[1].stdout"
+  #       - "'Environment = Not defined' in nvm_commands_response.results[1].stdout"
+  #       - "'hello-world - from the hi.js file' in nvm_commands_response.results[1].stdout"
+  #       - "'I\\'m inside the package.json file' in nvm_commands_response.results[1].stdout"
+  #       - "'8.15.0' in nvm_commands_response.results[3].stdout"
+  #       - "'hello-world - from the hi.py file' in nvm_commands_response.results[4].stdout"

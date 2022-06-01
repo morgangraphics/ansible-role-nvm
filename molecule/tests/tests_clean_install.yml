@@ -1,0 +1,23 @@
+---
+
+
+  - name: TEST | Get the list of installed node versions
+    shell: "bash -ic 'nvm ls --no-colors --no-alias'"
+    register: installed_versions
+    changed_when: false
+
+  - name: TEST | testing clean_install = true
+    block:
+
+      - name: "TEST | test that installed version in infact version {{ nodejs_version }} after clean_install"
+        assert:
+          that:
+            - "nodejs_version in nvm_node_version_response.stdout"
+            - "'v12.13.0' in installed_versions.stdout_lines[0]"
+
+          success_msg: "All clean_install  assertions passed"
+          fail_msg: "clean_install assertions failed"
+
+    when: clean_install | bool
+
+

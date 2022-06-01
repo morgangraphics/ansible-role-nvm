@@ -19,22 +19,22 @@
   # Leaving the default value (LTS) for nodejs_version
   # =================================================================
 
-  # - hosts: localhost
-  #   gather_facts: false
+  - hosts: localhost
+    gather_facts: false
 
-  #   vars:
-  #     playbook: "{{ active_playbook }}"
-  #     tests: "{{ active_test_file | default(active_playbook, true)}}"
+    vars:
+      playbook: "{{ active_playbook }}"
+      tests: "{{ active_test_file | default(active_playbook, true)}}"
 
-  #   roles:
+    roles:
       
-  #     # Default: nodejs_version:  lts
-  #     - role: ansible-role-nvm
+      # Default: nodejs_version:  lts
+      - role: ansible-role-nvm
 
-  #   tasks:
+    tasks:
 
-  #     - name: "Import {{ tests }}.yml file"
-  #       include: "../tests/tests_{{ tests }}.yml"
+      - name: "Import {{ tests }}.yml file"
+        include: "../tests/tests_{{ tests }}.yml"
 
 
   # =================================================================
@@ -42,24 +42,24 @@
   # Changing nodejs_version to v12.13.0
   # =================================================================
 
-  # - hosts: localhost
-  #   gather_facts: false
+  - hosts: localhost
+    gather_facts: false
 
-  #   vars:
-  #     playbook: "{{ active_playbook }}"
-  #     tests: "{{ active_test_file | default(active_playbook, true)}}"
+    vars:
+      playbook: "{{ active_playbook }}"
+      tests: "{{ active_test_file | default(active_playbook, true)}}"
 
-  #   roles:
+    roles:
 
-  #       # Non Default Value
-  #       - role: ansible-role-nvm
-  #         vars:
-  #           nodejs_version: v12.13.0
+        # Non Default Value
+        - role: ansible-role-nvm
+          vars:
+            nodejs_version: v12.13.0
     
-  #   tasks:
+    tasks:
 
-  #       - name: "Import {{ tests }}.yml file"
-  #         include_tasks: "../tests/tests_{{ tests }}.yml"
+        - name: "Import {{ tests }}.yml file"
+          include_tasks: "../tests/tests_{{ tests }}.yml"
 
 
   # =================================================================
@@ -68,34 +68,34 @@
   # 12.13.0 should be the default version
   # =================================================================
 
-  # - hosts: localhost
-  #   gather_facts: false
+  - hosts: localhost
+    gather_facts: false
 
-  #   vars:
-  #     playbook: "{{ active_playbook }}"
-  #     tests: "{{ active_test_file | default(active_playbook, true)}}"
+    vars:
+      playbook: "{{ active_playbook }}"
+      tests: "{{ active_test_file | default(active_playbook, true)}}"
 
-  #   roles:
+    roles:
 
-  #       # Localhost testing Only
-  #       # Remember, when overiding a role variable and you don't want it to persist to other instances of the role
-  #       # use the notation below (no vars: key)
-  #       - role: ansible-role-nvm
-  #         uninstall: true
-  #         when: vars.ansible_play_name == "localhost"
+        # Localhost testing Only
+        # Remember, when overiding a role variable and you don't want it to persist to other instances of the role
+        # use the notation below (no vars: key)
+        - role: ansible-role-nvm
+          uninstall: true
+          when: vars.ansible_play_name == "localhost"
 
-  #       - role: ansible-role-nvm
-  #         vars:
-  #           nodejs_version: v12.13.0
+        - role: ansible-role-nvm
+          vars:
+            nodejs_version: v12.13.0
 
-  #       - role: ansible-role-nvm
-  #         vars:
-  #           nodejs_version: v16.13.0
+        - role: ansible-role-nvm
+          vars:
+            nodejs_version: v16.13.0
     
-  #   tasks:
+    tasks:
 
-  #       - name: "Import {{ tests }}.yml file"
-  #         include_tasks: "../tests/tests_{{ tests }}.yml"
+        - name: "Import {{ tests }}.yml file"
+          include_tasks: "../tests/tests_{{ tests }}.yml"
 
   # =================================================================
   # Node Version: Test 4

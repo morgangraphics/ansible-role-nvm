@@ -1,0 +1,60 @@
+  # When including a role like below, then running tasks after the include, the overide role variables
+  # are ONLY persisted throughout the playbook when declared like: 
+  #
+  # role: ansible-role-nvm
+  #    vars:
+  #      autocomplete: false
+  #
+  # When Declared like:
+  #
+  # role: ansible-role-nvm
+  # autocomplete: false
+  #
+  # the variable will not be persisted to thr rest of the playbook/tasks
+
+  # =================================================================
+  # Node Version: Test 1
+  # Leaving the default value (LTS) for nodejs_version
+  # =================================================================
+
+  - hosts: localhost
+    gather_facts: false
+
+    vars:
+      playbook: "{{ active_playbook }}"
+      tests: "{{ active_test_file | default(active_playbook, true)}}"
+
+    roles:
+      
+      # Localhost testing Only
+      # Remember, when overiding a role variable and you don't want it to persist to other instances of the role
+      # use the notation below (no vars: key)
+      - role: ansible-role-nvm
+        uninstall: true
+        when: vars.ansible_play_name == "localhost"
+
+
+      # Default: nodejs_version:  lts
+      - role: ansible-role-nvm
+        vars:
+          nodejs_version: 8.15.0
+          nvm_commands: 
+            #- "node --version"
+            - "echo 'hello'"
+            - "nvm --version"
+
+      # - role: ansible-role-nvm
+      #   vars:
+      #     nodejs_version: 10.15.0
+      #     default: true
+      #     nvm_commands:
+      #       - "NODE_ENV=production nvm run ./hi.js && node --version"
+      #       - "nvm exec npm run test-key"
+      #       - "nvm exec default npm run test-key"
+      #       - "nvm exec 8.15.0 npm run test-key"
+      #       - "nvm exec ./hi.py"
+
+    tasks:
+
+      - name: "Import {{ tests }}.yml file"
+        include: "../tests/tests_{{ tests }}.yml"
