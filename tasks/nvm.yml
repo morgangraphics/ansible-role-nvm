@@ -108,6 +108,7 @@
       mode: 0644
       path: "{{ nvm_profile }}"
     become: true
+    become_user: root
     when: not profile_file.stat.exists
 
   when: nvm_install in ['curl', 'wget']
