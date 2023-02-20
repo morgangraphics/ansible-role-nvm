@@ -32,7 +32,7 @@ Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
 ---
 
 ## :warning: WARNING!
-DO NOT RUN THIS ROLE AS ROOT! (e.g. `become: true|yes|1`)
+**DO NOT RUN THIS ROLE AS ROOT!** (e.g. `become: true|yes|1`)
 
 There are a few reasons for this,
 1. It is an unneeded privilege escalation security risk, **it is highly unlikely that you need to run every task in every role as `root_user`**. If, for whatever reason, you do need to run everything as `root_user`, reconsider what the role is doing and why it needs root access for everything.
@@ -151,7 +151,7 @@ This example shows how you might set up multiple environments (Dev/Prod) with di
 
 ## Installing/Running/Maintaining or Upgrading multiple versions of Node.js on the same host
 
-By default, the **first** Node.js version instantiated in your Playbook will automatically be aliased as the "default" version regardless of whatever version you install afterwards or how many times you run the role. It is important to declare which version is expected to be the "default" version.
+By default, the **first** Node.js version instantiated in your Playbook will automatically be aliased as the "default" version regardless of whatever version you install afterwards or how many times you run the role. It is important to declare which version is expected to be the "default" version is you are install multiple versions on Node.js on a single machine.
 
 There are two pre-existing NVM aliases `default` (current "active" version of Node.js) and `system` (the base OS version of Node.js).
 
@@ -342,7 +342,7 @@ Another example
 
 #### `"nvm: command not found" error`
 
-This is often the result of running the role in another user context then the nvm and node user context will run inside the machine. If you add `become: true` to all the roles in your playbook to get around errors those roles throw due to permission issues, then this role will install nvm under the `ROOT_USER` (usually `/root/.bashrc`). **It is more than likely that you will want to run nvm and node as a default user e.g. vagrant, ec2-user, ubuntu etc.** If, for whatever reason, you cannot remove the `become: true` for everything, you can get around the `become: true` issue by specifying `become: true` **AND** `become_user: ec2-user` for this role alone. See [bash: nvm command not found
+This is often the result of running the role in another user context then the `nvm` and `node` user context will run inside the machine. If you add `become: true` to all the roles in your playbook to get around errors those roles throw due to permission issues, then this role will install `nvm` under the `ROOT_USER` (usually `/root/.bashrc`). **It is more than likely that you will want to run nvm and node as a default user e.g. vagrant, ec2-user, ubuntu etc.** If, for whatever reason, you cannot remove the `become: true` for everything, you can get around the `become: true` issue by specifying `become: true` **AND** `become_user: ec2-user` for this role alone. See [bash: nvm command not found
 ](https://github.com/morgangraphics/ansible-role-nvm/issues/16) for a detailed explanation of the issue
 
 
@@ -368,8 +368,20 @@ ansible-playbook my-playbook.yml -e "ansible_python_interpreter=/usr/bin/python3
 ```
 
 ---
+## Ansible Versions
 
+Ansible versions prior to 7 (ansible-core 2.14) had the ability to suppress deprecation warnings at the task level e.g
 
+```yaml
+  - name: Some Task
+    shell: "<SOME COMMAND>"
+    args:
+      warn: false
+```
+
+This feature has been removed in Ansible version 7.
+
+---
 ## Role Variables
 
 Available variables are listed below, along with default values see [defaults/main.yml]( defaults/main.yml)
@@ -456,7 +468,7 @@ NVM source location i.e. you host your own fork of [NVM](https://github.com/crea
 NVM version to install
 
   ```yaml
-  nvm_version: "0.38.0"
+  nvm_version: "0.39.3"
   ```
 
 Uninstall NVM, will remove .nvm directory and clean up `{{ nvm_profile }}` file
@@ -474,6 +486,13 @@ None.
 
 ## Change Log
 ---
+
+**1.5.0**
+*   [@dandelany](https://github.com/morgangraphics/ansible-role-nvm/issues/35) reported an issue regarding the now deprecated `warn: false`
+* [#36 default:true is not idempotent](https://github.com/morgangraphics/ansible-role-nvm/issues/36) was fixed while testing `warn: false` issue
+* Internal variable names changes to group them under a common prefix
+* Default dash command check was missing
+* NVM Version bump
 
 **1.4.3**
 *   NVM Version bump, Ansible Galaxy_Tags, README.md linting
