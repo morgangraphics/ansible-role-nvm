@@ -6,14 +6,14 @@ galaxy_info:
   description: NVM installation for Linux
   company: "MORGANGRAPHICS"
   license: "license (BSD, MIT)"
-  min_ansible_version: 2.0
+  min_ansible_version: "2.0"
   platforms:
     - name: EL
       versions:
-      - 6
-      - 7
-      - 8
-      - 9
+      - "6"
+      - "7"
+      - "8"
+      - "9"
     - name: Debian
       versions:
       - all
@@ -23,12 +23,12 @@ galaxy_info:
       - bionic
       - xenial
       - trusty
-      - prescise
+      - precise
   galaxy_tags:
     - development
     - web
     - nvm
-    - node-version-manager
+    - node_version_manager
     - nodejs
     - node
     - javascript

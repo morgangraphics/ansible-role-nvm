@@ -487,6 +487,11 @@ None.
 ## Change Log
 ---
 
+**1.5.1**
+* [@otsuka](https://github.com/morgangraphics/ansible-role-nvm/issues/39) reported issue with version numbering mismatch
+* Removed travis cd yaml file. Moving to CircleCI eventually
+* Fixed some things in meta/main.yaml file
+
 **1.5.0**
 *   [@dandelany](https://github.com/morgangraphics/ansible-role-nvm/issues/35) reported an issue regarding the now deprecated `warn: false`
 * [#36 default:true is not idempotent](https://github.com/morgangraphics/ansible-role-nvm/issues/36) was fixed while testing `warn: false` issue

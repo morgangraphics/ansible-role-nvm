@@ -1,6 +1,6 @@
 ---
 #SEMVER
-role_version: "1.4.3"
+role_version: "1.5.1"
 
 role_repo: "https://github.com/morgangraphics/ansible-role-nvm"
 
