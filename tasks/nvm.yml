@@ -62,6 +62,8 @@
 
     - name: Create profile file if it does not exist
       file:
+        group: "{{ ansible_become_user | default(ansible_user) }}"
+        owner: "{{ ansible_become_user | default(ansible_user) }}"
         mode: 0777
         path: "{{ nvm_profile }}"
         state: touch
@@ -90,6 +92,8 @@
 
   - name: Create nvm_dir if it does not exist
     file:
+      group: "{{ ansible_become_user | default(ansible_user) }}"
+      owner: "{{ ansible_become_user | default(ansible_user) }}"
       mode: 0775
       path: "{{ nvm_dir }}"
       state: directory
@@ -109,6 +113,8 @@
 
   - name: Update profile permissions to lock it down after writing
     file:
+      group: "{{ ansible_become_user | default(ansible_user) }}"
+      owner: "{{ ansible_become_user | default(ansible_user) }}"
       mode: 0644
       path: "{{ nvm_profile }}"
     become: true
