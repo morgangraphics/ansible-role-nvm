@@ -307,6 +307,7 @@ Another example
 
   pre_tasks:
 
+    # test-user needs to be a real user on the system before we can install nvm in their profile
     - name: add new user
       user:
         name: "test-user"
@@ -486,6 +487,10 @@ None.
 
 ## Change Log
 ---
+**1.5.2**
+* [@neutralalice](https://github.com/morgangraphics/ansible-role-nvm/issues/41) reported issue with connection=local issues
+* NVM Version update
+* Comment in example to make things more clear about users needed to exist on the system before installation
 
 **1.5.1**
 * [@otsuka](https://github.com/morgangraphics/ansible-role-nvm/issues/39) reported issue with version numbering mismatch

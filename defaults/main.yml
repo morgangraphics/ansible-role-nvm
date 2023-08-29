@@ -1,6 +1,6 @@
 ---
 #SEMVER
-role_version: "1.5.1"
+role_version: "1.5.2"
 
 role_repo: "https://github.com/morgangraphics/ansible-role-nvm"
 
@@ -60,13 +60,13 @@ nvm_install: "wget"
 # BASH: .bashrc
 # ZSH: .zshrc
 #
-nvm_profile: ".bashrc"
+nvm_profile: "~/.bashrc"
 
 # NVM source location - i.e. you host your own fork
 nvm_source: ""
 
 # Version of NVM to install
-nvm_version: "0.39.3"
+nvm_version: "0.39.5"
 
 # Uninstall NVM
 uninstall: false
