@@ -1,8 +1,17 @@
-# Ansible Role: NVM
+# Ansible Role: NVM (Legacy)
 
+## Notice
+The 1.5.X branch of this Ansible Role will now become the "legacy" version. 
+
+The 1.5.X branch will **ONLY SUPPORT** Ansible versions below 2.16.0.
+
+If you are using newer versions of Ansible (greater than or equal to 2.16.0), use the ansible-role-nvm 2.0.X branch (master) instead.
+
+Updates will be made when security issues arise, but most active development will happen in the 2.0.X branch
+
+---
 
 Installs NVM & Node.js on Debian/Ubuntu and RHEL/CentOS systems
-
 
 Ansible weirdness with SSH and (non)interactive shells makes working with NVM and Ansible a bit problematic. This [stack overflow](https://stackoverflow.com/questions/22256884/not-possible-to-source-bashrc-with-ansible) post explains some of the things other people have done to get around this particular issue.
 
@@ -487,6 +496,10 @@ None.
 
 ## Change Log
 ---
+**1.5.3**
+* Marking 1.5.X version Legacy for Ansible Versions below 2.16.0 based on some comments from [@danfoster](https://github.com/morgangraphics/ansible-role-nvm/pull/43)
+* NVM Version Update
+
 **1.5.2**
 * [@neutralalice](https://github.com/morgangraphics/ansible-role-nvm/issues/41) reported issue with connection=local issues
 * NVM Version update
