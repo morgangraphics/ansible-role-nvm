@@ -1,8 +1,7 @@
 # Ansible Role: NVM
 
 
-Installs NVM & Node.js on Debian/Ubuntu and RHEL/CentOS systems
-
+Installs NVM & Node.js on Debian/Ubuntu, RHEL/CentOS systems, and others *nix systems
 
 Ansible weirdness with SSH and (non)interactive shells makes working with NVM and Ansible a bit problematic. This [stack overflow](https://stackoverflow.com/questions/22256884/not-possible-to-source-bashrc-with-ansible) post explains some of the things other people have done to get around this particular issue.
 
@@ -23,6 +22,18 @@ Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
 1.  You can install whatever **version** or **versions** of Node.js you want
 1.  Doesn't install NVM or Node.js as root
 1.  Can run arbitrary nvm, npm, node, bash or shell commands potentially eliminating the need for a separate Node Ansible role all together
+
+
+
+## Requirements
+
+Ansible version (ansible-core) 2.16.0 +
+
+
+> :triangular_flag_on_post: For a version of this role that works on older versions of Ansible see the [legacy 1.5.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy)
+
+See [Ansible Versions below](#ansible-versions)
+
 
 ## Installation
 1.  Clone this repo into your roles folder
@@ -86,7 +97,7 @@ BEST :metal:
       nvm_commands:
        - "nvm exec default npm install"
       become: true            # THIS WILL CHANGE THE LOGIN CONTEXT TO USE THE USER BELOW
-      become_user: ec2-user   # THIS INSTALLS NVM IN THE CONTEXT OF THE EC2-USER/DEFAULT USER
+      become_user: ec2-user   # THIS INSTALLS NVM IN THE CONTEXT OF THE EC2-USER/DEFAULT USER. THIS USER MUST EXIST ON THE SYSTEM!
 
     - role: some-other-role
       ...
@@ -96,7 +107,6 @@ BEST :metal:
 
 See [Issues](#issues) below for further details
 
----
 
 ## Example Playbooks
 
@@ -323,6 +333,7 @@ Another example
         - "node --version"
         - "nvm --version"
         - "npm --version"
+        - "python3 -m hello"
       become_user: test-user
       become: true
 ```
@@ -341,13 +352,13 @@ Another example
 ## Issues
 
 
-#### `"nvm: command not found" error`
+### `"nvm: command not found" error`
 
 This is often the result of running the role in another user context then the `nvm` and `node` user context will run inside the machine. If you add `become: true` to all the roles in your playbook to get around errors those roles throw due to permission issues, then this role will install `nvm` under the `ROOT_USER` (usually `/root/.bashrc`). **It is more than likely that you will want to run nvm and node as a default user e.g. vagrant, ec2-user, ubuntu etc.** If, for whatever reason, you cannot remove the `become: true` for everything, you can get around the `become: true` issue by specifying `become: true` **AND** `become_user: ec2-user` for this role alone. See [bash: nvm command not found
 ](https://github.com/morgangraphics/ansible-role-nvm/issues/16) for a detailed explanation of the issue
 
 
-#### `"cannot find /usr/bin/python" error`
+### `"cannot find /usr/bin/python" error`
 
 It is due to OS's that run Python 3 by default (e.g. Fedora). You will need to specify the Ansible python interpreter variable in the inventory file or via the command line
 
@@ -368,24 +379,33 @@ or
 ansible-playbook my-playbook.yml -e "ansible_python_interpreter=/usr/bin/python3"
 ```
 
----
-## Ansible Versions
+### `glibc_2.28' not found (required by node)`
 
-Ansible versions prior to 7 (ansible-core 2.14) had the ability to suppress deprecation warnings at the task level e.g
+You are attempting to run a version of Node.js on an operating system that is not supported by the version of Node.js you are installing. This is not an NVM issue nor is it an issue with the role. You need to either upgrade the OS or downgrade the version of Node.js you are atrempting to install. 
 
-```yaml
-  - name: Some Task
-    shell: "<SOME COMMAND>"
-    args:
-      warn: false
-```
 
-This feature has been removed in Ansible version 7.
+<a name="ansible-versions"></a>
 
 ---
+## Ansible Version Support
+
+**ansible-core 2.16 +**
+
+There has been a fundamental change on how Ansible manages includes/imports. Ansible has removed `ansible.builtin.include` from ansible-core and replaced it with `ansible.builtin.include_tasks`. Unfortunately, Ansible cannot scope `ansible.builtin.include` to ignore older versions etc. so I upgraded this role to fully support ansible-core 2.16+
+
+If you require support for ansible-core 2.15 and below, please use the [ansible-role-nvm-legacy](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy) branch
+
+**ansible-core 2.15 and below**
+
+Please use the [legacy 1.5.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy)
+
+
+
 ## Role Variables
 
 Available variables are listed below, along with default values see [defaults/main.yml]( defaults/main.yml)
+
+
 
 The Node.js version to install. The latest "lts" version is the default and works on most supported OSes.
 
@@ -393,20 +413,32 @@ The Node.js version to install. The latest "lts" version is the default and work
   nodejs_version: "lts"
   ```
 
-Convenience method for installing NVM bash autocomplete (`nvm <TAB>`) when a user has to maintain a server or workstation manually
+ Convenience method for installing NVM bash autocomplete (`nvm <TAB>`) when a user has to maintain a server or workstation manually
 
   ```yaml
   autocomplete: false
   ```
 
-Set default version of Node when maintaining/installing multiple versions
+Install NVM from scratch removing **ANY** and **ALL** existing or previous references to `.nvm` (directories) and **ANY** and **ALL** existing or previous references in profile entries e.g. `.bashrc` in the system. 
 
+```yaml
+clean_install: false
+```
+
+> `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for refrences as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **USE WITH CAUTION**
+
+
+```yaml
 default: false
+```
+
+Set default version of Node when maintaining/installing multiple versions of Node
+
 
 > NVM will automatically alias the first run/installed version as "default" which is more than likely what people will use this role  for, however, this will allow for installation/upgrade of multiple versions on an existing machine
 
 
-List of [NVM commands to run](https://github.com/creationix/nvm#usage). Default is an empty list.
+List of [NVM commands to run](#nvm-commands). Default is an empty list.
 
   ```yaml
   nvm_commands: []
@@ -416,7 +448,7 @@ NVM Installation type. Options are wget, curl and git
 
   ```yaml
   nvm_install: "wget"
-  ````
+  ```
 
 NVM Installation directory.
 
@@ -432,14 +464,19 @@ NVM Profile location Options are .bashrc, .cshrc, .tcshrc, .zshrc
   nvm_profile: ".bashrc"
   ```
 
-> The location of the SHELL profile that will source the nvm command from. There are two potential contexts to consider,
-> globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want)
-> e.g **/etc/bash.bashrc**, **/etc/profile**, etc.
+> The location of the login SHELL profile that will source the nvm command from. There are two potential contexts to consider:
+>
+> *Globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want)*
+>
+> e.g `/etc/bash.bashrc`, `/etc/profile` etc.
 >
 > **OR**
 >
-> *On a per user basis tied to a specific user account e.g. /home/vagrant/.bashrc.*
->  *This role will create the appropriate profile file if it doesn't already exist.*
+> *On a per user basis tied to a specific user account*
+>
+> e.g. `/home/vagrant/.bashrc`.*
+> 
+> *This role will create the appropriate profile file if it doesn't already exist.*
 >
 > *If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real  user on the box, then nvm will not work as you expect. become, become_user and nvm_profile path are symbiotic*
 >
@@ -469,10 +506,10 @@ NVM source location i.e. you host your own fork of [NVM](https://github.com/crea
 NVM version to install
 
   ```yaml
-  nvm_version: "0.39.3"
+  nvm_version: "0.39.7"
   ```
 
-Uninstall NVM, will remove .nvm directory and clean up `{{ nvm_profile }}` file
+Uninstall NVM, will remove the .nvm directory and clean up file located at the `{{ nvm_profile }}` variable path (usually $HOME/.bashrc) where ever that file is located
 
   ```yaml
   uninstall: False
@@ -487,64 +524,10 @@ None.
 
 ## Change Log
 ---
-**1.5.2**
-* [@neutralalice](https://github.com/morgangraphics/ansible-role-nvm/issues/41) reported issue with connection=local issues
-* NVM Version update
-* Comment in example to make things more clear about users needed to exist on the system before installation
+**2.0.0**
+See the [RELEASE NOTES]()
 
-**1.5.1**
-* [@otsuka](https://github.com/morgangraphics/ansible-role-nvm/issues/39) reported issue with version numbering mismatch
-* Removed travis cd yaml file. Moving to CircleCI eventually
-* Fixed some things in meta/main.yaml file
 
-**1.5.0**
-*   [@dandelany](https://github.com/morgangraphics/ansible-role-nvm/issues/35) reported an issue regarding the now deprecated `warn: false`
-* [#36 default:true is not idempotent](https://github.com/morgangraphics/ansible-role-nvm/issues/36) was fixed while testing `warn: false` issue
-* Internal variable names changes to group them under a common prefix
-* Default dash command check was missing
-* NVM Version bump
-
-**1.4.3**
-*   NVM Version bump, Ansible Galaxy_Tags, README.md linting
-
-**1.4.2**
-*   Updated documentation to fix missing `become: true` when using `become_user: some-user` as reported by  [@jfoliveira](https://github.com/morgangraphics/ansible-role-nvm/issues/23)
-
-**1.4.1**
-*   Addressed version check as reported by [@DanHulton](https://github.com/morgangraphics/ansible-role-nvm/issues/21)
-
-**1.4.0**
-*   Code Linting, Indempotency updates for CI/CD testing
-*   Addressed version check as reported by [@Jamesking56](https://github.com/morgangraphics/ansible-role-nvm/issues/18)
-
-**1.3.0**
-*   Addressed `nvm: command not found error` bug as reported by [@eyekelly](https://github.com/morgangraphics/ansible-role-nvm/issues/16).
-*   Updated documentation in greater detail about user context/session/shells to guard against `nvm: command not found error`.
-*   Updated default variable explanations
-*   Reworked documentation and examples surrounding `nvm_commands`
-*   NVM version bump
-
-**1.2.2**
-*   NVM version bump
-
-**1.2.1**
-*   Documentation updates for clarity
-
-**1.2.0**
-*   Addresses issues [#8 Add default: True role variable to ensure NVM default alias is set correctly](https://github.com/morgangraphics/ansible-role-nvm/issues/8), [#9 Git functionality has changed according to the NVM documentation](https://github.com/morgangraphics/ansible-role-nvm/issues/9), [#10 NVM has an Autocomplete functionality. Add `autocomplete: True` Ansible variable to role](https://github.com/morgangraphics/ansible-role-nvm/issues/10), [#11 Update documentation to highlight updating a default version](https://github.com/morgangraphics/ansible-role-nvm/issues/11), and [#12 Add remove: True variable to uninstall NVM](https://github.com/morgangraphics/ansible-role-nvm/issues/12) as discussed with [@DanHulton](https://github.com/morgangraphics/ansible-role-nvm/pull/7) to address multiple version of Node.js running on the same host.
-*   Expanded documentation with examples about how powerful `nvm_commands: []` can be
-
-**1.1.2**
-*   Issue reported/PR supplied by [@DanHulton](https://github.com/morgangraphics/ansible-role-nvm/pull/5), Documentation updates,
-
-**1.1.1**
-*   Documentation updates
-
-**1.1.0**
-*   Issue reported by [@magick93](https://github.com/morgangraphics/ansible-role-nvm/issues/3), Bumped default version of NVM script, Documentation updates
-
-**1.0.2**
-*   Issue reported by [@swoodford](https://github.com/morgangraphics/ansible-role-nvm/issues/1), Bumped default version of NVM script, Documentation updates
 
 ## License
 

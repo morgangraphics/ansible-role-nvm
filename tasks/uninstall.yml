@@ -1,0 +1,84 @@
+---
+
+  - name: uninstall
+    block:
+
+      - name: find .nvm path
+        ansible.builtin.shell: "{{ mg_user_shell.command }} + ' printenv NVM_DIR'"
+        register: mg_remote_nvm_path
+        changed_when: "mg_remote_nvm_path.rc != 0"
+
+      - name: Uninstall NVM
+        ansible.builtin.file:
+          path: "{{ mg_remote_nvm_path.stdout | default('~/.nvm') }}"
+          state: absent
+
+      - name: Remove NVM nvm_profile info
+        ansible.builtin.lineinfile:
+          regexp: '^export.+nvm\"|\[.+nvm'
+          path: "{{ nvm_profile }}"
+          state: absent
+
+      - name: Remove NVM autocomplete from nvm_profile
+        ansible.builtin.blockinfile:
+          block: |
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+          marker_begin: "Installed via {{ role_repo }} START"
+          marker_end: "{{ role_repo }} END"
+          path: "{{ nvm_profile }}"
+          state: absent
+
+    when: uninstall or clean_install
+
+
+  - name: clean_install
+    block:
+
+      # find any directory that has nvm in it e.g. /.nvm or /nvm etc. 
+      # exclude any path that contains linux
+      # ignore anything that has "Permission denied" in the response and then
+      # direct it to stdout >&1
+      # if there is a match force the correct .rc code e.g. .rc = 0
+      # ignore_errors is there for when there is no match and the wrong .rc code is returned
+      - name: check folders that match nvm
+        ansible.builtin.raw: "find / -type d -not \\( -path **/linux** -prune \\) -regex '.*/.nvm' 2>&1 | { grep -v \"Permission denied\" >&1; [ $? -eq 0 ]; }"
+        register: nvm_dir_possible_locations
+        ignore_errors: true
+        changed_when:
+          - "'Shared connection' in nvm_dir_possible_locations.stderr"
+          - nvm_dir_possible_locations.stdout_lines | length > 0
+        failed_when: "'Shared connection' not in nvm_dir_possible_locations.stderr"
+
+      # remove any directories that match
+      - name: Uninstall NVM directory
+        ansible.builtin.file:
+          path: "{{ item }}"
+          state: absent
+        loop: "{{ nvm_dir_possible_locations.stdout_lines }}"
+        when: nvm_dir_possible_locations.stdout_lines | length > 0
+    
+      # r = recursive
+      # w = word-regex Select only those lines containing matches that form whole words.
+      # s = suppress error messages (no "Permission Denied")
+      # l = files with matches (just the path)
+      # I = ignore binary files
+      # -- we will look for NVM in the normal places
+      # ignore_errors is there for when there is no match and the wrong .rc code is returned
+      - name: check files in /home, /etc and /root custom_nvm_directory and custom nvm_profile for nvm related stuff
+        ansible.builtin.raw: "grep -rwslI -E \"^export.+nvm|\\[.+nvm(\\sbash_completion)?\" /home /etc /root {{ nvm_dir }} {{ nvm_profile }} --include=.*{shrc,profile} >&1; [ $? -eq 0 ];"
+        register: nvm_shell_possible_locations
+        ignore_errors: true
+        changed_when:
+          - "'Shared connection' in nvm_shell_possible_locations.stderr"
+          - nvm_shell_possible_locations.stdout_lines | length > 0
+        failed_when: "'Shared connection' not in nvm_shell_possible_locations.stderr"
+
+      - name: Remove NVM nvm_profile info
+        ansible.builtin.lineinfile:
+          regexp: '^export.+nvm\"|\[.+nvm(\sbash_completion)?'
+          path: "{{ item }}"
+          state: absent
+        loop: "{{ nvm_shell_possible_locations.stdout_lines }}"
+        when: nvm_shell_possible_locations.stdout_lines | length > 0
+    
+    when: clean_install | bool
