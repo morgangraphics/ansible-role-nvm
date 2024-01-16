@@ -182,6 +182,7 @@
 - name: LTS Check
   set_fact:
     nodejs_version: --lts
+    nodejs_alias: lts/*
   when: "nodejs_version == 'lts'"
 
 # This scenario handles the first run/install of NVM because this will automatically
@@ -200,8 +201,19 @@
 # In the event there are multiple versions of Node being installed/used/upgraded
 # on the same machine we'll need to alias the default version accordingly
 - name: Set default version of Node if multiple versions exist # noqa 305
-  shell: "{{ mg_user_shell.command + ' \"nvm alias default ' +  nodejs_version + ' --no-colors\"' }}"
-  when:  default
+  ansible.builtin.shell: "{{ mg_user_shell.command + ' \"nvm alias default ' +  nodejs_version + '\"' }}"
+  when:  
+  - default | bool
+  - nodejs_version != '--lts'
+  changed_when: "'nodejs_version' not in mg_nvm_default_response.stdout"
+
+# Addresses an issue where the LTS version is set as a default. The version above 
+# doesn't work because --lts is not an alias, according to nvm documentation it is lts/*
+- name: Set default version of Node LTS if multiple versions exist # noqa 305
+  ansible.builtin.shell: "{{ mg_user_shell.command + ' \"nvm alias default ' +  nodejs_alias + '\"' }}"
+  when: 
+  - default | bool
+  - nodejs_version == '--lts'
   changed_when: "'nodejs_version' not in mg_nvm_default_response.stdout"
 
 - name: Run whatever nvm_commands are there # noqa 305

@@ -11,7 +11,7 @@ Updates will be made when security issues arise, but most active development wil
 
 ---
 
-Installs NVM & Node.js on Debian/Ubuntu and RHEL/CentOS systems
+Installs NVM & Node.js on Debian/Ubuntu and RHEL/CentOS systems, RHEL/CentOS systems, and others *nix systems
 
 Ansible weirdness with SSH and (non)interactive shells makes working with NVM and Ansible a bit problematic. This [stack overflow](https://stackoverflow.com/questions/22256884/not-possible-to-source-bashrc-with-ansible) post explains some of the things other people have done to get around this particular issue.
 
@@ -37,6 +37,17 @@ Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
 1.  Clone this repo into your roles folder
 1.  Point the `roles_path` variable to the roles folder i.e. `roles_path = ../ansible-roles/` in your `ansible.cfg` file
 1.  Include role in your playbook
+
+
+## Requirements
+
+Ansible version (ansible-core) < 2.16.0
+
+
+> :triangular_flag_on_post: For a version of this role that works on newer versions of Ansible see the [2.0.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/master)
+
+See [Ansible Versions below](#ansible-versions)
+
 
 ---
 
@@ -95,7 +106,7 @@ BEST :metal:
       nvm_commands:
        - "nvm exec default npm install"
       become: true            # THIS WILL CHANGE THE LOGIN CONTEXT TO USE THE USER BELOW
-      become_user: ec2-user   # THIS INSTALLS NVM IN THE CONTEXT OF THE EC2-USER/DEFAULT USER
+      become_user: ec2-user   # THIS INSTALLS NVM IN THE CONTEXT OF THE EC2-USER/DEFAULT USER. THIS USER MUST EXIST ON THE SYSTEM!
 
     - role: some-other-role
       ...
@@ -332,6 +343,7 @@ Another example
         - "node --version"
         - "nvm --version"
         - "npm --version"
+        - "python3 -m hello"
       become_user: test-user
       become: true
 ```
@@ -380,6 +392,15 @@ ansible-playbook my-playbook.yml -e "ansible_python_interpreter=/usr/bin/python3
 ---
 ## Ansible Versions
 
+**ansible-core 2.16 +**
+
+There has been a fundamental change on how Ansible manages includes. Ansible has removed `ansible.builtin.include_tasks` from ansible-core. Unfortunately, it cannot be scoped to ignore older versions etc. so I upgraded this role to fully support ansible-core 2.16+
+
+If you require support for ansible-core 2.16 and below, please use the [2.0.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/master)
+
+
+**ansible-core 2.14**
+
 Ansible versions prior to 7 (ansible-core 2.14) had the ability to suppress deprecation warnings at the task level e.g
 
 ```yaml
@@ -425,7 +446,7 @@ NVM Installation type. Options are wget, curl and git
 
   ```yaml
   nvm_install: "wget"
-  ````
+  ```
 
 NVM Installation directory.
 
@@ -441,14 +462,19 @@ NVM Profile location Options are .bashrc, .cshrc, .tcshrc, .zshrc
   nvm_profile: ".bashrc"
   ```
 
-> The location of the SHELL profile that will source the nvm command from. There are two potential contexts to consider,
-> globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want)
-> e.g **/etc/bash.bashrc**, **/etc/profile**, etc.
+> The location of the login SHELL profile that will source the nvm command from. There are two potential contexts to consider:
+>
+> *Globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want)*
+>
+> e.g `/etc/bash.bashrc`, `/etc/profile` etc.
 >
 > **OR**
 >
-> *On a per user basis tied to a specific user account e.g. /home/vagrant/.bashrc.*
->  *This role will create the appropriate profile file if it doesn't already exist.*
+> *On a per user basis tied to a specific user account*
+>
+> e.g. `/home/vagrant/.bashrc`.*
+> 
+> *This role will create the appropriate profile file if it doesn't already exist.*
 >
 > *If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real  user on the box, then nvm will not work as you expect. become, become_user and nvm_profile path are symbiotic*
 >
@@ -499,6 +525,7 @@ None.
 **1.5.3**
 * Marking 1.5.X version Legacy for Ansible Versions below 2.16.0 based on some comments from [@danfoster](https://github.com/morgangraphics/ansible-role-nvm/pull/43)
 * NVM Version Update
+* Added some tasks related to setting a LTS version as default
 
 **1.5.2**
 * [@neutralalice](https://github.com/morgangraphics/ansible-role-nvm/issues/41) reported issue with connection=local issues
