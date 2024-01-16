@@ -525,7 +525,7 @@ None.
 ## Change Log
 ---
 **2.0.0**
-See the [RELEASE NOTES]()
+See the [RELEASE NOTES](https://github.com/morgangraphics/ansible-role-nvm/releases/latest)
 
 
 
