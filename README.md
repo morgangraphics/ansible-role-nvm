@@ -391,7 +391,7 @@ You are attempting to run a version of Node.js on an operating system that is no
 
 **ansible-core 2.16 +**
 
-There has been a fundamental change on how Ansible manages includes. Ansible has removed `ansible.builtin.include_tasks` from ansible-core. Unfortunately, it cannot be scoped to ignore older versions etc. so I upgraded this role to fully support ansible-core 2.16+
+There has been a fundamental change on how Ansible manages includes/imports. Ansible has removed `ansible.builtin.include` from ansible-core and replaced it with `ansible.builtin.include_tasks`. Unfortunately, Ansible cannot scope `ansible.builtin.include` to ignore older versions etc. so I upgraded this role to fully support ansible-core 2.16+
 
 If you require support for ansible-core 2.15 and below, please use the [ansible-role-nvm-legacy](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy) branch
 
