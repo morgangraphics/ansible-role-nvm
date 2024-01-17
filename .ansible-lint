@@ -1,0 +1,10 @@
+---
+
+exclude_paths:
+  - .venv*/
+
+skip_list:
+  - role-name
+
+warn_list:
+  - experimental
