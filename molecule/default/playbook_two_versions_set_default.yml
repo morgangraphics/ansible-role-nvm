@@ -1,0 +1,14 @@
+---
+
+  - name: include ansible-role-nvm role variables
+    import_role:
+      name: ansible-role-nvm
+    vars:
+      nodejs_version: v8.16.0
+
+  - name: include ansible-role-nvm role variables
+    import_role:
+      name: ansible-role-nvm
+    vars:
+      nodejs_version: v12.13.0
+      default: true

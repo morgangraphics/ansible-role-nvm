@@ -1,0 +1,28 @@
+---
+
+  # Due to how import roles work, only one import will be run unless allow_duplicates: true
+  # or Variables being passed in are different.
+  # https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html#role-duplication-and-execution
+  # nvm_commands was executing for the first import with the second import commands
+  # even though the first import commands weren't explicitly defined.
+  # To get it to work I explicitly define it as an empty list.
+
+  - name: include ansible-role-nvm role variables | first
+    import_role:
+      name: ansible-role-nvm
+    vars:
+      nodejs_version: 8.15.0
+      nvm_commands: []
+
+  - name: include ansible-role-nvm role variables | second
+    import_role:
+      name: ansible-role-nvm
+    vars:
+      nodejs_version: 10.15.0
+      default: true
+      nvm_commands:
+       - "NODE_ENV=production nvm run ./hi.js && node --version"
+       - "nvm exec npm run test-key"
+       - "nvm exec default npm run test-key"
+       - "nvm exec 8.15.0 npm run test-key"
+       - "nvm exec ./hi.py"

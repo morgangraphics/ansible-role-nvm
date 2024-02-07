@@ -1,5 +1,4 @@
 ---
-
 # - hosts: centos-6
 #   pre_tasks:
 #     - name: Update respective package caches.

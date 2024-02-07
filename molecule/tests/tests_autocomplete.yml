@@ -1,0 +1,31 @@
+---
+
+  - name: TEST | testing autocomplete config | not installed
+    block:
+      - name: "cat $HOME/.bashrc to ensure autocomplete was not installed"
+        command: "/bin/bash -ic 'cat $HOME/.bashrc'"
+        register: test_autocomplete
+
+      - assert:
+          that:
+            - "'$NVM_DIR/bash_completion' not in test_autocomplete.stdout"
+
+    when: not (vars_test.autocomplete.autocomplete | bool)
+
+
+  - name: TEST | testing autocomplete config | installed
+    block:
+      - name: "cat $HOME/.bashrc to to ensure autocomplete was installed"
+        command: "/bin/bash -ic 'cat $HOME/.bashrc'"
+        register: test_autocomplete
+
+      - name: test automcomplete command
+        command: "/bin/bash -ic 'compgen -c nvm'"
+        register: autocomplete_tab
+
+      - assert:
+          that:
+            - "'$NVM_DIR/bash_completion' in test_autocomplete.stdout"
+            - "'nvm_alias' and 'nvm_ls_current' in autocomplete_tab.stdout"
+
+    when: vars_default.autocomplete.autocomplete | bool

@@ -1,0 +1,14 @@
+---
+
+  - name: "TEST | testing nvm commands"
+    assert:
+      that:
+        - "nodejs_version in nvm_commands_response.results[0].stdout"
+        - "'Environment = production' in nvm_commands_response.results[0].stdout"
+        - "'hello-world - from the hi.js file' in nvm_commands_response.results[0].stdout"
+        - "nodejs_version in nvm_commands_response.results[1].stdout"
+        - "'Environment = Not defined' in nvm_commands_response.results[1].stdout"
+        - "'hello-world - from the hi.js file' in nvm_commands_response.results[1].stdout"
+        - "'I\\'m inside the package.json file' in nvm_commands_response.results[1].stdout"
+        - "'8.15.0' in nvm_commands_response.results[3].stdout"
+        - "'hello-world - from the hi.py file' in nvm_commands_response.results[4].stdout"

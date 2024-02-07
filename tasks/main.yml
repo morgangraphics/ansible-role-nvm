@@ -1,3 +1,4 @@
 ---
 
-- ansible.builtin.include_tasks: nvm.yml
+- name: Include NVM Tasks
+  ansible.builtin.include_tasks: nvm.yml

@@ -1,0 +1,7 @@
+---
+
+  # node_version_response is a fact set inside the role
+  - name: "TEST | test that installed version in infact version {{ nodejs_version }}"
+    assert:
+      that:
+        - "nodejs_version in nvm_node_version_response.stdout"

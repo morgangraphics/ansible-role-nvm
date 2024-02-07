@@ -1,0 +1,27 @@
+---
+- name: Converge
+  hosts: all
+
+  # Roles IMPORTED (not included) in this fashion will have variables overridden
+  # AND PERSISTED throughout the rest of the playbook
+  vars:
+    playbook: &playbook "{{ active_playbook }}"
+    tests: "{{ active_test_file | default(active_playbook, true)}}"
+
+  tasks:
+
+    - debug: var=vars
+
+    - name: include vars
+      include_vars:
+        file: "../vars/tests.yml"
+        name: vars_test
+
+    #- set_fact: vars="{{ vars | combine(vars_test[playbook]) }}"
+
+    - debug: var=vars
+    - debug: var="{{ vars_test[playbook] | to_ }}"
+    - debug: var=autocomplete
+
+    # - name: "Import {{ playbook }}.yml tasks"
+    #   import_tasks: "./playbook_{{ playbook }}.yml"

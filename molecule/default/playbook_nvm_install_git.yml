@@ -1,0 +1,9 @@
+---
+
+  - name: include ansible-role-nvm role variables
+    import_role:
+      name: ansible-role-nvm
+    vars:
+      clean_install: true
+      nvm_install: git
+      nvm_dir: '$HOME/.nvm'

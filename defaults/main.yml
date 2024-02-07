@@ -1,13 +1,13 @@
 ---
-#SEMVER
-role_version: "2.0.0"
+# SEMVER
+role_version: 2.0.0
 
-role_repo: "https://github.com/morgangraphics/ansible-role-nvm"
+role_repo: https://github.com/morgangraphics/ansible-role-nvm
 
 # Set the specific version of Node.js to install ("4.8.0", "6.11.0").
 # use lts for latest Long Term Release
 # Version numbers from Nodesource: https://github.com/nodesource/distributions
-nodejs_version: "lts"
+nodejs_version: lts
 
 # NVM has a bash autocomplete functionality for when a user logs into a machine. Cool feature
 # but only works when a human logs into said machine. More of a convienence method for this role
@@ -26,7 +26,6 @@ default: false
 
 # AdHoc NVM Commands
 nvm_commands: []
-
 # The next 3 options only apply to wget and curl - If you don't know what you're doing
 # you are fine to leave these alone.
 #
@@ -39,7 +38,7 @@ nvm_dir: ""
 
 # Options are wget, curl, git
 # Git :default dest: is the same as nvm_profile below.
-nvm_install: "wget"
+nvm_install: wget
 
 # The location of the SHELL profile that will source the nvm command from. There are two potential contexts to consider,
 # globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want)
@@ -65,7 +64,7 @@ nvm_install: "wget"
 # BASH: .bashrc
 # ZSH: .zshrc
 #
-nvm_profile: "~/.bashrc"
+nvm_profile: ~/.bashrc
 
 # NVM source location - i.e. you host your own fork
 nvm_source: ""

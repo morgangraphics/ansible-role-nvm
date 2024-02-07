@@ -1,0 +1,13 @@
+---
+
+  # node_version_response is a fact set inside the role
+
+  - name: "TEST | stat for the existence of the default nvm_dir"
+    stat:
+      path: "{{ nvm_profile | dirname + '/.nvm' }}"
+    register: nvm_tests_default_dir
+
+  - name: "TEST | test that the nvm directory is in {{ nvm_dir }} path"
+    assert:
+      that:
+        - nvm_tests_default_dir.stat.isdir is defined and nvm_tests_default_dir.stat.isdir

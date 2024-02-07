@@ -1,0 +1,12 @@
+---
+
+  - name: TEST | testing uninstall
+    block:
+      - name: "cat {{ nvm_profile }} to ensure autocomplete was not installed"
+        command: "cat {{ nvm_profile }}"
+        register: test_uninstall
+
+      - assert:
+          that:
+            - "'$NVM_DIR/bash_completion' not in test_uninstall.stdout"
+    when: uninstall | bool

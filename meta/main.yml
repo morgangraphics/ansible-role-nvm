@@ -1,33 +1,32 @@
 ---
 dependencies: []
-
 galaxy_info:
   author: dm00000
+  role_name: ansible_role_nvm
+  namespace: morgangraphics
   description: NVM installation for Linux
-  company: "MORGANGRAPHICS"
-  license: "license (BSD, MIT)"
-  min_ansible_version: "2.16.0"
+  company: MORGANGRAPHICS
+  license: license (BSD, MIT)
+  min_ansible_version: 2.16.0
   platforms:
     - name: EL
       versions:
-      - "6"
-      - "7"
-      - "8"
-      - "9"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
     - name: Debian
       versions:
-      - all
+        - all
     - name: Ubuntu
       versions:
-      - jammy
-      - focal
-      - bionic
-      - xenial
-      - trusty
-      - precise
+        - jammy
+        - focal
+        - bionic
+        - xenial
+        - trusty
+        - precise
   galaxy_tags:
-    - development
-    - web
     - nvm
     - node_version_manager
     - nodejs

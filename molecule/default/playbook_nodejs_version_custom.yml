@@ -1,0 +1,5 @@
+---
+
+  - name: include ansible-role-nvm role variables
+    import_role:
+      name: ansible-role-nvm

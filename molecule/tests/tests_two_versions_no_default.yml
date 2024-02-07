@@ -1,0 +1,15 @@
+---
+
+  - name: TEST | run nvm command with | no default set
+    shell: "{{ user_shell.executable + ' ' + user_shell.flags + ' \"nvm exec default node --version\"' }}"
+    register: non_explicit_default
+
+  - name: TEST | run nvm command with generic alias | no default set
+    shell: "{{ user_shell.executable + ' ' + user_shell.flags + ' \"nvm exec 12.13.0 node --version\"' }}"
+    register: generic_alias
+
+  - name: TEST | test that default versions are set
+    assert:
+      that:
+        - "'v8.16.0' in non_explicit_default.stdout"
+        - "'v12.13.0' in generic_alias.stdout"

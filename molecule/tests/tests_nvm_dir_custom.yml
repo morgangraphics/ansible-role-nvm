@@ -1,0 +1,12 @@
+---
+
+  # node_version_response is a fact set inside the role
+  - name: "TEST | stat for the existence of the custom nvm_dir"
+    stat:
+      path: "{{ nvm_dir }}"
+    register: nvm_tests_custom_dir
+
+  - name: "TEST | test that the nvm directory is in {{ nvm_dir }} path"
+    assert:
+      that:
+        - nvm_tests_custom_dir.stat.isdir is defined and nvm_tests_custom_dir.stat.isdir

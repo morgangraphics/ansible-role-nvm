@@ -1,0 +1,10 @@
+---
+
+  - name: include ansible-role-nvm role variables
+    import_role:
+      name: ansible-role-nvm
+    vars:
+      nvm_dir: "/opt/nvm"
+      nvm_profile: "/home/ansible-test/.bashrc"
+    become: true
+    become_user: ansible-test

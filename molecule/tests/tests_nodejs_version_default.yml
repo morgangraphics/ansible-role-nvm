@@ -1,0 +1,11 @@
+---
+
+  # node_version_response is a fact set inside the role
+  - name: TEST | Get the list of LTS node versions
+    shell: "bash -ic 'nvm ls-remote --lts --no-colors'"
+    register: lts_versions
+
+  - name: "TEST | test that installed version in infact version {{ nodejs_version }}"
+    assert:
+      that:
+        - "(lts_versions.stdout_lines | last | regex_search('v[0-9.]+')) in nvm_node_version_response.stdout"

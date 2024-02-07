@@ -1,0 +1,83 @@
+---
+
+x-ubuntu-default-ansible-user: &ubuntu-default-ansible-user
+  ansible_user: ansible-test
+
+x-ubuntu-ansible-inventory: &ubuntu-ansible-inventory
+  host_vars:
+    #ubuntu-trusty:
+    #  <<: *ubuntu-default-ansible-user
+    ubuntu-xenial:
+      <<: *ubuntu-default-ansible-user
+    ubuntu-bionic:
+      <<: *ubuntu-default-ansible-user
+    ubuntu-focal:
+      <<: *ubuntu-default-ansible-user
+
+x-ubuntu-template: &ubuntu-template
+  name: ubuntu-trusty
+  dockerfile: '../tests/Dockerfile.ubuntu-trusty'
+  image: ubuntu-trusty:ansible
+  override_command: False
+  pre_build_image: True
+  recreate: True
+  tty: True
+  volumes:
+    - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+
+# MOLECULE START
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
+platforms:
+  - <<: *ubuntu-template
+    name: ubuntu-xenial
+    dockerfile: '../tests/Dockerfile.ubuntu-xenial'
+    image: ubuntu-xenial:ansible
+  # - <<: *ubuntu-template
+  #   name: ubuntu-bionic
+  #   dockerfile: '../../tests/Dockerfile.ubuntu-bionic'
+  #   image: ubuntu-bionic:ansible
+  # - <<: *ubuntu-template
+  #   name: ubuntu-focal
+  #   dockerfile: '../../tests/Dockerfile.ubuntu-focal'
+  #   image: ubuntu-focal:ansible
+provisioner:
+  name: ansible
+  inventory: *ubuntu-ansible-inventory
+  options:
+    vvv: True
+  playbooks:
+    converge: converge.yml
+  ansible_args:
+    - --extra-vars=active_playbook=autocomplete
+    #converge: ${MOLECULE_PLAYBOOK:-converge.yml}
+  env:
+    MOLECULE_NO_LOG: False
+scenario:
+  name: default
+  destroy_sequence:
+    - destroy
+  test_sequence:
+    - lint
+    - destroy
+    - syntax
+    - create
+    - converge
+    # - idempotence
+    # - verify
+    - destroy
+verifier:
+  name: ansible
+  inventory: *ubuntu-ansible-inventory
+  options:
+    vvv: True
+  playbooks:
+    converge: converge.yml
+  ansible_args:
+    - --extra-vars=active_playbook=autocomplete
