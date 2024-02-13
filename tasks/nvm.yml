@@ -16,18 +16,18 @@
 - name: Set full nvm_profile path | Default
   ansible.builtin.set_fact:
     nvm_profile: "$HOME/.bashrc"
-  when: nvm_profile == '.bashrc'
+  when: nvm_profile | d('')  == '.bashrc'
 
 - name: Set full nvm_profile path | Custom Path
   ansible.builtin.set_fact:
     nvm_profile: "{{ nvm_profile }}"
-  when: nvm_profile != '.bashrc'
+  when: nvm_profile | d('') != '.bashrc'
 
 # ERROR HANDLING
 - name: test to ensure symbiotic variables are declared | nvm_dir AND nvm_profile
   ansible.builtin.fail:
     msg: "If setting a custom nvm_dir directory e.g. /opt/nvm, nvm_dir MUST be used in combination with nvm_profile"
-  when: nvm_dir and nvm_profile == '.bashrc' and nvm_install != 'git'
+  when: nvm_dir and nvm_profile | d('') == '.bashrc' and nvm_install != 'git'
 
 - name: test to ensure symbiotic variables are declared | nvm_dir AND nvm_install = git
   ansible.builtin.fail:
@@ -89,7 +89,7 @@
 
     - name: "!WARNING! set unrecommended default for any other nvm_profile value !WARNING!"
       ansible.builtin.set_fact:
-        mg_user_shell: { 'command': '/etc/bash -ic', 'alias': 'bash' }
+        mg_user_shell: { 'command': '/bin/bash -ic', 'alias': 'bash' }
       when: (mg_shell_path is undefined) or (mg_found_path | length == 0)
 
     - name: does profile file exist
@@ -107,13 +107,18 @@
       when: not mg_profile_file.stat.exists
       become: true
 
-  when: nvm_profile | length != 0
+  when: nvm_profile | d('') | length != 0
+
+- name: Handle unset nvm_profile value
+  ansible.builtin.set_fact:
+    mg_user_shell: { 'command': '/bin/bash -ic', 'alias': 'bash' }
+  when: nvm_profile | d('') | length == 0
 
 
 # UNINSTALL
 - ansible.builtin.import_tasks: uninstall.yml
 
-# I don't want the rest of the playbook running when uninstall = true 
+# I don't want the rest of the playbook running when uninstall = true
 # It defeats the purpose of the uninstall in the first place
 - name: Run everything else when uninstall = false
   block:
@@ -151,7 +156,7 @@
       # https://news.ycombinator.com/item?id=12766049
       # https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install
       - name: Install NVM
-        ansible.builtin.shell: "{{ run_command }} https://raw.githubusercontent.com/creationix/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ nvm_profile }} {{ mg_user_shell.alias }}"
+        ansible.builtin.shell: "{{ run_command }} https://raw.githubusercontent.com/creationix/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ (nvm_profile | d('') | length > 0) | ternary(nvm_profile | d(''), '/dev/null') }} {{ mg_user_shell.alias }}"
         register: mg_nvm_result
         changed_when: "'already installed' not in mg_nvm_result.stdout"
         failed_when:
@@ -164,7 +169,7 @@
           mode: 0644
           path: "{{ nvm_profile }}"
         become: true
-        when: not mg_profile_file.stat.exists
+        when: mg_profile_file.stat is defined and not mg_profile_file.stat.exists
 
       when: nvm_install in ['curl', 'wget']
 
@@ -184,6 +189,7 @@
             marker_end: "{{ role_repo }} END"
             path: "{{ nvm_profile }}"
             state: absent
+          when: nvm_profile is defined
 
         - name: Install via git
           ansible.builtin.git:
@@ -203,6 +209,7 @@
             mode: 0644
             path: "{{ nvm_profile }}"
             state: present
+          when: nvm_profile is defined
 
       when: "nvm_install == 'git'"
 
@@ -222,7 +229,7 @@
         mode: 0644
         path: "{{ nvm_profile }}"
         state: present
-      when: autocomplete
+      when: nvm_profile is defined and autocomplete
 
     - name: LTS Check
       ansible.builtin.set_fact:
