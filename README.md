@@ -495,6 +495,9 @@ NVM Profile location Options are .bashrc, .cshrc, .tcshrc, .zshrc
 >  **TSCH**: /etc/csh.cshrc, .tcshrc, .cshrc
 >
 >  **ZSH**: .zshrc
+>
+> **(empty string)**: If you leave this variable empty, the role will not modify any profile file. You'll be responsible for making modifications to load up nvm yourself.
+
 
 
 NVM source location i.e. you host your own fork of [NVM](https://github.com/creationix/nvm)
