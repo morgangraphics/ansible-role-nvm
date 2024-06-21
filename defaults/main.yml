@@ -24,6 +24,12 @@ clean_install: false
 # https://github.com/morgangraphics/ansible-role-nvm/pull/7#issuecomment-481423099
 default: false
 
+# Ignore NVM Profile
+# This handles a situation where developers already have shell configurations and don't want them
+# altered. 
+# NVM Also allows skipping editing of the shell config https://github.com/nvm-sh/nvm?tab=readme-ov-file#additional-notes
+ignore_nvm_profile: false
+
 # AdHoc NVM Commands
 nvm_commands: []
 

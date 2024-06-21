@@ -13,6 +13,7 @@
   ansible.builtin.set_fact:
     mg_login_user: "{{ mg_nvm_whoami.stdout }}"
 
+# Profile Path Settings
 - name: Set full nvm_profile path | Default
   ansible.builtin.set_fact:
     nvm_profile: "$HOME/.bashrc"
@@ -22,6 +23,13 @@
   ansible.builtin.set_fact:
     nvm_profile: "{{ nvm_profile }}"
   when: nvm_profile != '.bashrc'
+
+# https://github.com/nvm-sh/nvm?tab=readme-ov-file#additional-notes
+- name: override profile path if ignore_nvm_profile = true
+  ansible.builtin.set_fact:
+    nvm_profile: "/dev/null"
+  when: ignore_nvm_profile | bool
+
 
 # ERROR HANDLING
 - name: test to ensure symbiotic variables are declared | nvm_dir AND nvm_profile
@@ -89,7 +97,7 @@
 
     - name: "!WARNING! set unrecommended default for any other nvm_profile value !WARNING!"
       ansible.builtin.set_fact:
-        mg_user_shell: { 'command': '/etc/bash -ic', 'alias': 'bash' }
+        mg_user_shell: { 'command': '$(which bash) -ic', 'alias': 'bash' }
       when: (mg_shell_path is undefined) or (mg_found_path | length == 0)
 
     - name: does profile file exist
@@ -104,7 +112,9 @@
         mode: 0777
         path: "{{ nvm_profile }}"
         state: touch
-      when: not mg_profile_file.stat.exists
+      when: 
+        - not mg_profile_file.stat.exists
+        - not ignore_nvm_profile | bool
       become: true
 
   when: nvm_profile | length != 0
@@ -144,7 +154,9 @@
           path: "{{ nvm_dir }}"
           state: directory
         become: true
-        when: nvm_dir | length != 0
+        when: 
+          - nvm_dir | length != 0
+          - not ignore_nvm_profile | bool
 
       # There are some potential security concerns with piping the install.sh script to whatever shell alias is defined: Risk is Low but not absolute
       # https://blog.dijit.sh//don-t-pipe-curl-to-bash
@@ -164,7 +176,9 @@
           mode: 0644
           path: "{{ nvm_profile }}"
         become: true
-        when: not mg_profile_file.stat.exists
+        when: 
+          - not mg_profile_file.stat.exists
+          - not ignore_nvm_profile | bool
 
       when: nvm_install in ['curl', 'wget']
 
@@ -184,6 +198,8 @@
             marker_end: "{{ role_repo }} END"
             path: "{{ nvm_profile }}"
             state: absent
+          when:
+            - not ignore_nvm_profile | bool
 
         - name: Install via git
           ansible.builtin.git:
@@ -203,6 +219,8 @@
             mode: 0644
             path: "{{ nvm_profile }}"
             state: present
+          when:
+            - not ignore_nvm_profile | bool
 
       when: "nvm_install == 'git'"
 
@@ -222,7 +240,9 @@
         mode: 0644
         path: "{{ nvm_profile }}"
         state: present
-      when: autocomplete
+      when: 
+        - autocomplete | bool
+        - not ignore_nvm_profile | bool
 
     - name: LTS Check
       ansible.builtin.set_fact:

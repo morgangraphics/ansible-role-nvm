@@ -421,22 +421,29 @@ The Node.js version to install. The latest "lts" version is the default and work
 
 Install NVM from scratch removing **ANY** and **ALL** existing or previous references to `.nvm` (directories) and **ANY** and **ALL** existing or previous references in profile entries e.g. `.bashrc` in the system. 
 
-```yaml
-clean_install: false
-```
+  ```yaml
+  clean_install: false
+  ```
 
 > `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for refrences as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **USE WITH CAUTION**
 
 
-```yaml
-default: false
-```
-
 Set default version of Node when maintaining/installing multiple versions of Node
 
+  ```yaml
+  default: false
+  ```
 
 > NVM will automatically alias the first run/installed version as "default" which is more than likely what people will use this role  for, however, this will allow for installation/upgrade of multiple versions on an existing machine
 
+
+Ignore writing or altering the default profile. NVM allows for skipping the editing of a profile [https://github.com/nvm-sh/nvm?tab=readme-ov-file#additional-notes](See Additional Notes)
+
+  ```yaml
+  ignore_nvm_profile: false
+  ```
+
+> Setting `ignore_nvm_profile: true` will override any option set in nvm_profile
 
 List of [NVM commands to run](#nvm-commands). Default is an empty list.
 
