@@ -437,7 +437,7 @@ Set default version of Node when maintaining/installing multiple versions of Nod
 > NVM will automatically alias the first run/installed version as "default" which is more than likely what people will use this role  for, however, this will allow for installation/upgrade of multiple versions on an existing machine
 
 
-Ignore writing or altering the default profile. NVM allows for skipping the editing of a profile [https://github.com/nvm-sh/nvm?tab=readme-ov-file#additional-notes](See Additional Notes)
+Ignore writing or altering the default profile. NVM allows for skipping the editing of a profile [See Additional Notes in the nvm-sh Git Repo](https://github.com/nvm-sh/nvm?tab=readme-ov-file#additional-notes)
 
   ```yaml
   ignore_nvm_profile: false
