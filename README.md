@@ -161,7 +161,7 @@ This example shows how you might set up multiple environments (Dev/Prod) with di
 
 ## Installing/Running/Maintaining or Upgrading multiple versions of Node.js on the same host
 
-By default, the **first** Node.js version instantiated in your Playbook will automatically be aliased as the "default" version regardless of whatever version you install afterwards or how many times you run the role. It is important to declare which version is expected to be the "default" version is you are install multiple versions on Node.js on a single machine.
+By default, the **first** Node.js version instantiated in your Playbook will automatically be aliased as the "default" version regardless of whatever version you install afterwards or how many times you run the role. It is important to declare which version is expected to be the "default" version if you are install multiple versions on Node.js on a single machine.
 
 There are two pre-existing NVM aliases `default` (current "active" version of Node.js) and `system` (the base OS version of Node.js).
 
