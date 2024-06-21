@@ -403,7 +403,7 @@ Please use the [legacy 1.5.X branch](https://github.com/morgangraphics/ansible-r
 
 ## Role Variables
 
-Available variables are listed below, along with default values see [defaults/main.yml]( defaults/main.yml)
+Available variables are listed below, along with default values see [defaults/main.yml](defaults/main.yml)
 
 
 
