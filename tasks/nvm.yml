@@ -123,7 +123,7 @@
 # UNINSTALL
 - ansible.builtin.import_tasks: uninstall.yml
 
-# I don't want the rest of the playbook running when uninstall = true 
+# I don't want the rest of the playbook running when uninstall = true
 # It defeats the purpose of the uninstall in the first place
 - name: Run everything else when uninstall = false
   block:
