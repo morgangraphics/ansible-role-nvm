@@ -352,22 +352,21 @@ Another example
 ## Issues
 
 
-### `"nvm: command not found" error`
+### "nvm: command not found" error
 
-This is often the result of running the role in another user context then the `nvm` and `node` user context will run inside the machine. If you add `become: true` to all the roles in your playbook to get around errors those roles throw due to permission issues, then this role will install `nvm` under the `ROOT_USER` (usually `/root/.bashrc`). **It is more than likely that you will want to run nvm and node as a default user e.g. vagrant, ec2-user, ubuntu etc.** If, for whatever reason, you cannot remove the `become: true` for everything, you can get around the `become: true` issue by specifying `become: true` **AND** `become_user: ec2-user` for this role alone. See [bash: nvm command not found
+> This is often the result of running the role in another user context then the `nvm` and `node` user context will run inside the machine. If you add `become: true` to all the roles in your playbook to get around errors those roles throw due to permission issues, then this role will install `nvm` under the `ROOT_USER` (usually `/root/.bashrc`). **It is more than likely that you will want to run nvm and node as a default user e.g. vagrant, ec2-user, ubuntu etc.** If, for whatever reason, you cannot remove the `become: true` for everything, you can get around the `become: true` issue by specifying `become: true` **AND** `become_user: ec2-user` for this role alone. See [bash: nvm command not found
 ](https://github.com/morgangraphics/ansible-role-nvm/issues/16) for a detailed explanation of the issue
 
-This issue will also show up if you do not have an NVM alias in your profile file and have set `ignore_nvm_profile: true`
+>This issue will also show up if you do not have an NVM alias in your profile file and have set `ignore_nvm_profile: true`
 
 
-### `"cannot find /usr/bin/python" error`
+### "cannot find /usr/bin/python" error
 
-It is due to OS's that run Python 3 by default (e.g. Fedora). You will need to specify the Ansible python interpreter variable in the inventory file or via the command line
+>It is due to OS's that run Python 3 by default (e.g. Fedora). You will need to specify the Ansible python interpreter variable in the inventory file or via the command line
 
 ```text
 [fedora1]
 192.168.0.1 ansible_python_interpreter=/usr/bin/python3
-
 
 [fedora2]
 192.168.0.2
@@ -381,9 +380,15 @@ or
 ansible-playbook my-playbook.yml -e "ansible_python_interpreter=/usr/bin/python3"
 ```
 
-### `glibc_2.28' not found (required by node)`
+### "glibc_2.28' not found (required by node)" error
 
-You are attempting to run a version of Node.js on an operating system that is not supported by the version of Node.js you are installing. This is not an NVM issue nor is it an issue with the role. You need to either upgrade the OS or downgrade the version of Node.js you are atrempting to install. 
+>You are attempting to run a version of Node.js on an operating system that is not supported by the version of Node.js you are installing. This is not an NVM issue nor is it an issue with this role.
+>
+> To address this issue, you will need to: 
+> 1. Upgrade the OS version
+> 1. Downgrade the version of Node.js you are attempting to install
+>
+> &#160;
 
 
 <a name="ansible-versions"></a>
