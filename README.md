@@ -364,7 +364,7 @@ This issue will also show up if you do not have an NVM alias in your profile fil
 
 It is due to OS's that run Python 3 by default (e.g. Fedora). You will need to specify the Ansible python interpreter variable in the inventory file or via the command line
 
-```toml
+```text
 [fedora1]
 192.168.0.1 ansible_python_interpreter=/usr/bin/python3
 
@@ -401,7 +401,7 @@ If you require support for ansible-core 2.15 and below, please use the [ansible-
 
 Please use the [legacy 1.5.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy)
 
-
+---
 
 ## Role Variables
 
@@ -427,7 +427,7 @@ Install NVM from scratch removing **ANY** and **ALL** existing or previous refer
   clean_install: false
   ```
 
-> `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for refrences as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **:fire: USE WITH CAUTION THIS WILL RESULT IN DATA LOSS**
+> `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for refrences as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **:warning: USE WITH CAUTION, THIS WILL RESULT IN DATA LOSS**
 
 
 Set default version of Node when maintaining/installing multiple versions of Node
