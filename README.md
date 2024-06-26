@@ -111,7 +111,7 @@ See [Issues](#issues) below for further details
 ## Example Playbooks
 
 #### Super Simple
-Include the role as is and it will install latest LTS version of Node.js
+Include the role as is and it will install the latest LTS version of Node.js
 
 ``` yaml
 - hosts: all
@@ -432,7 +432,7 @@ Install NVM from scratch removing **ANY** and **ALL** existing or previous refer
   clean_install: false
   ```
 
-> `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for refrences as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **:warning: USE WITH CAUTION, THIS WILL RESULT IN DATA LOSS**
+> `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for `nvm` refrences, as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **:warning: USE WITH CAUTION, THIS WILL RESULT IN DATA LOSS**
 
 
 Set default version of Node when maintaining/installing multiple versions of Node
