@@ -204,8 +204,8 @@
         - name: Install via git
           ansible.builtin.git:
             dest: "{{ nvm_dir }}"
-            repo: 'https://github.com/nvm-sh/nvm.git .nvm'
-            version: "{{ nvm_version }}"
+            repo: 'https://github.com/nvm-sh/nvm.git'
+            version: "v{{ nvm_version }}"
           when: "'/git' in mg_cmd.stdout"
 
         - name: Add NVM to nvm_profile
