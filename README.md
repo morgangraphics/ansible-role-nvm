@@ -357,6 +357,8 @@ Another example
 This is often the result of running the role in another user context then the `nvm` and `node` user context will run inside the machine. If you add `become: true` to all the roles in your playbook to get around errors those roles throw due to permission issues, then this role will install `nvm` under the `ROOT_USER` (usually `/root/.bashrc`). **It is more than likely that you will want to run nvm and node as a default user e.g. vagrant, ec2-user, ubuntu etc.** If, for whatever reason, you cannot remove the `become: true` for everything, you can get around the `become: true` issue by specifying `become: true` **AND** `become_user: ec2-user` for this role alone. See [bash: nvm command not found
 ](https://github.com/morgangraphics/ansible-role-nvm/issues/16) for a detailed explanation of the issue
 
+This issue will also show up if you do not have an NVM alias in your profile file and have set `ignore_nvm_profile: true`
+
 
 ### `"cannot find /usr/bin/python" error`
 
@@ -425,7 +427,7 @@ Install NVM from scratch removing **ANY** and **ALL** existing or previous refer
   clean_install: false
   ```
 
-> `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for refrences as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **USE WITH CAUTION**
+> `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for refrences as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **:fire: USE WITH CAUTION THIS WILL RESULT IN DATA LOSS**
 
 
 Set default version of Node when maintaining/installing multiple versions of Node
@@ -437,13 +439,14 @@ Set default version of Node when maintaining/installing multiple versions of Nod
 > NVM will automatically alias the first run/installed version as "default" which is more than likely what people will use this role  for, however, this will allow for installation/upgrade of multiple versions on an existing machine
 
 
-Ignore writing or altering the default profile. NVM allows for skipping the editing of a profile [See Additional Notes in the nvm-sh Git Repo](https://github.com/nvm-sh/nvm?tab=readme-ov-file#additional-notes)
+
+Ignore writing to or altering the NVM user default profile. NVM allows for skipping the alteration of an existing profile [See Additional Notes in the nvm-sh Git Repo documentation](https://github.com/nvm-sh/nvm?tab=readme-ov-file#additional-notes)
 
   ```yaml
   ignore_nvm_profile: false
   ```
 
-> Setting `ignore_nvm_profile: true` will override any option set in nvm_profile
+> :warning: Setting `ignore_nvm_profile: true` will override any option set in the `nvm_profile` variable and presumes that you have an already existing NVM alias defined in your profile file. **IF YOU DO NOT HAVE AN EXISTING NVM ALIAS IN YOUR PROFILE, THIS ROLE WILL NOT WORK AS EXPECTED!**
 
 List of [NVM commands to run](#nvm-commands). Default is an empty list.
 
@@ -481,11 +484,11 @@ NVM Profile location Options are .bashrc, .cshrc, .tcshrc, .zshrc
 >
 > *On a per user basis tied to a specific user account*
 >
-> e.g. `/home/vagrant/.bashrc`.*
+> e.g. `/home/vagrant/.bashrc`
 > 
 > *This role will create the appropriate profile file if it doesn't already exist.*
 >
-> *If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real  user on the box, then nvm will not work as you expect. become, become_user and nvm_profile path are symbiotic*
+> *If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real  user on the box, then nvm will not work as expected. `become`, `become_user` and `nvm_profile` path are symbiotic*
 >
 > :warning: **PLEASE BE AWARE OF THE LIMITATIONS OF EXPLICITLY DECLARING .profile OR .bash_profile FILES ON UBUNTU SYSTEMS**
 >
@@ -504,7 +507,7 @@ NVM Profile location Options are .bashrc, .cshrc, .tcshrc, .zshrc
 >  **ZSH**: .zshrc
 
 
-NVM source location i.e. you host your own fork of [NVM](https://github.com/creationix/nvm)
+NVM source location i.e. you host your own fork of [NVM](https://github.com/nvm-sh/nvm)
 
   ```yaml
   nvm_source: ""
@@ -542,6 +545,6 @@ MIT / BSD
 
 ## Author Information
 
-dm00000 via MORGANGRAPHICS, INC
+[dm00000](https://github.com/morgangraphics) via MORGANGRAPHICS, INC
 
 This role borrows heavily from [Jeff Geerling's](https://www.jeffgeerling.com/) Node.js role, author of [Ansible for DevOps](https://www.ansiblefordevops.com/).
