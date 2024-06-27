@@ -163,11 +163,26 @@
       # https://news.ycombinator.com/item?id=12766049
       # https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install
       - name: Install NVM
+        ansible.builtin.shell: "{{ run_command }} set -o pipefail && https://raw.githubusercontent.com/nvm-sh/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ nvm_profile }} {{ mg_user_shell.alias }}"
+        register: mg_nvm_result
+        changed_when: "'already installed' not in mg_nvm_result.stdout"
+        failed_when:
+          - "'permission denied' in mg_nvm_result.stderr"
+        when: 
+          - "'dash' not in run_command"
+          - "'csh' not in run_command"
+          - "'tsch' not in run_command"
+
+      - name: Install NVM - No pipefail support
         ansible.builtin.shell: "{{ run_command }} https://raw.githubusercontent.com/nvm-sh/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ nvm_profile }} {{ mg_user_shell.alias }}"
         register: mg_nvm_result
         changed_when: "'already installed' not in mg_nvm_result.stdout"
         failed_when:
           - "'permission denied' in mg_nvm_result.stderr"
+        when: 
+          - "'dash' in run_command"
+          - "'csh' in run_command"
+          - "'tsch' in run_command"
 
       - name: Update profile permissions to lock it down after writing
         ansible.builtin.file:
