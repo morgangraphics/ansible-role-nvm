@@ -159,7 +159,7 @@
             - nvm_dir | length != 0
             - not ignore_nvm_profile | bool
 
-        # ========== INSTALL ==========
+        # ========== DEFAULT INSTALL ==========
         # There are some potential security concerns with piping the install.sh script to whatever shell alias is defined: Risk is Low but not absolute
         # https://blog.dijit.sh//don-t-pipe-curl-to-bash
         # https://news.ycombinator.com/item?id=12766049
@@ -185,7 +185,7 @@
 
       when: nvm_install in ['curl', 'wget']
 
-    # ========== GIT ==========
+    # ========== INSTALL VIA GIT ==========
     - name: Install via git
       block:
         - name: Check if git is installed
