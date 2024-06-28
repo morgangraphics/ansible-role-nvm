@@ -7,24 +7,27 @@ galaxy_info:
   company: "MORGANGRAPHICS"
   license: "license (BSD, MIT)"
   min_ansible_version: "2.16.0"
+  namespace: morgangraphics
+  role_name: ansible_role_nvm
   platforms:
     - name: EL
       versions:
-      - "6"
-      - "7"
-      - "8"
-      - "9"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
     - name: Debian
       versions:
-      - all
+        - all
     - name: Ubuntu
       versions:
-      - jammy
-      - focal
-      - bionic
-      - xenial
-      - trusty
-      - precise
+        - mantic
+        - jammy
+        - focal
+        - bionic
+        - xenial
+        - trusty
+        - precise
   galaxy_tags:
     - development
     - web

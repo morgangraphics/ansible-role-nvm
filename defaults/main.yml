@@ -1,5 +1,5 @@
 ---
-#SEMVER
+# SEMVER
 role_version: "2.1.0"
 
 role_repo: "https://github.com/morgangraphics/ansible-role-nvm"
@@ -26,7 +26,7 @@ default: false
 
 # Ignore NVM Profile
 # This handles a situation where developers already have shell configurations and don't want them
-# altered. 
+# altered.
 # NVM Also allows skipping editing of the shell config https://github.com/nvm-sh/nvm?tab=readme-ov-file#additional-notes
 ignore_nvm_profile: false
 
