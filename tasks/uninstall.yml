@@ -1,9 +1,10 @@
 ---
 
 - name: Uninstall
+  when: uninstall or clean_install
   block:
 
-    - name: Find .nvm path
+    - name: Find .nvm path  # noqa command-instead-of-shell
       ansible.builtin.shell: "{{ mg_user_shell.command }} + ' printenv NVM_DIR'"
       register: mg_remote_nvm_path
       changed_when: "mg_remote_nvm_path.rc != 0"
@@ -32,10 +33,11 @@
       when:
         - not ignore_nvm_profile | bool
 
-  when: uninstall or clean_install
+   # End Uninstall/Clean install Block
 
 
 - name: Clean_install
+  when: clean_install | bool
   block:
 
     # Find any directory that has nvm in it e.g. /.nvm or /nvm etc.
@@ -69,7 +71,8 @@
     # -- we will look for NVM in the normal places
     # ignore_errors is there for when there is no match and the wrong .rc code is returned
     - name: Check files in /home, /etc and /root custom_nvm_directory and custom nvm_profile for nvm related stuff
-      ansible.builtin.raw: "grep -rwslI -E \"^export.+nvm|\\[.+nvm(\\sbash_completion)?\" /home /etc /root {{ nvm_dir }} {{ nvm_profile }} --include=.*{shrc,profile} >&1; [ $? -eq 0 ];"
+      ansible.builtin.raw: >
+        "grep -rwslI -E \"^export.+nvm|\\[.+nvm(\\sbash_completion)?\" /home /etc /root {{ nvm_dir }} {{ nvm_profile }} --include=.*{shrc,profile} >&1; [ $? -eq 0 ];"
       register: nvm_shell_possible_locations
       ignore_errors: true
       changed_when:
@@ -89,4 +92,4 @@
         - nvm_shell_possible_locations.stdout_lines | length > 0
         - not ignore_nvm_profile | bool
 
-  when: clean_install | bool
+  # End Clean install Only Block

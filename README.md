@@ -1,25 +1,31 @@
 # Ansible Role: NVM
 
+![Ansible Role](https://img.shields.io/ansible/role/d/morgangraphics/ansible_role_nvm?logo=ansible&label=Ansible%20Galaxy%20Downloads&link=https%3A%2F%2Fgithub.com%2Fmorgangraphics%2Fansible-role-nvm)
+
 
 Installs NVM & Node.js on Debian/Ubuntu, RHEL/CentOS systems, and others *nix systems
 
 Ansible weirdness with SSH and (non)interactive shells makes working with NVM and Ansible a bit problematic. This [stack overflow](https://stackoverflow.com/questions/22256884/not-possible-to-source-bashrc-with-ansible) post explains some of the things other people have done to get around this particular issue.
 
+This role is opinionated, in-so-far, as it only manages NVM, the things NVM uses/alters and not much else e.g. user permissions or installing packages to build Node.js on Alpine Linux. This role was built with the intent of leaving a small footprint while still fully allowing the flexibility for automated installs/updates (Ansible) and per user(s) management as needed. 
+
 ## Where other roles fall short
 Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
+
+1.  You cannot run ad-hoc nvm, npm, node, bash or shell commands. See [NVM Commands](#nvm-commands) below for examples on how this could eliminate specialiazed Node or other NVM roles entirely.
 
 1.  They use the apt-get or yum packages managers to install Node.js. This often means that the Node.js package is older than what is currently available via the Node.js repo. In some cases, those packages may not be a LTS release and if you need multiple Node.js versions running on the same host, you're out of luck.
 
 1.  They will often install NVM and Node.js as `root` user (`sudo su` or `become: true`). This can add to the headache of permissions related to NPM plugin management as well as how Node functions with nvm in addition to being an unneeded privilege escalation security risk
 
-1.  You cannot run ad hoc nvm, npm, node, bash or shell commands
+
 
 
 ## Where this role differs from other roles
 
 1.  You can install NVM via wget, curl or git
 1.  You can use NVM just like you would via your [command line](https://github.com/creationix/nvm#usage) in your own Ansible tasks and playbooks
-1.  You can install whatever **version** or **versions** of Node.js you want
+1.  You can install whatever **version** or **versions** of Node.js you want, per user, users, or globally
 1.  Doesn't install NVM or Node.js as root
 1.  Can run arbitrary nvm, npm, node, bash or shell commands potentially eliminating the need for a separate Node Ansible role all together
 
@@ -36,6 +42,14 @@ See [Ansible Versions below](#ansible-versions)
 
 
 ## Installation
+
+### Ansible Galaxy
+1. In your terminal, paste
+
+  ```shell
+  ansible-galaxy role install morgangraphics.ansible_role_nvm
+  ````
+### Locally
 1.  Clone this repo into your roles folder
 1.  Point the `roles_path` variable to the roles folder i.e. `roles_path = ../ansible-roles/` in your `ansible.cfg` file
 1.  Include role in your playbook
@@ -110,7 +124,7 @@ See [Issues](#issues) below for further details
 
 ## Example Playbooks
 
-#### Super Simple
+#### Super Simple Locally
 Include the role as is and it will install the latest LTS version of Node.js
 
 ``` yaml
@@ -119,6 +133,18 @@ Include the role as is and it will install the latest LTS version of Node.js
   roles:
     - role: ansible-role-nvm
 ```
+
+#### Super Simple Ansible Galaxy Version
+Include the role as is and it will install the latest LTS version of Node.js
+
+``` yaml
+- hosts: all
+
+  roles:
+    - role: morgangraphics.ansible_role_nvm
+```
+
+> Most examples use the locally installed syntax. Ff you prefer Ansible Galaxy, replace `role: ansible-role-nvm` with `role: morgangraphics.ansible_role_nvm` and it will work the same way
 
 #### Simple
 Include the role and specify the specific version of Node.js you want to install
@@ -165,7 +191,7 @@ By default, the **first** Node.js version instantiated in your Playbook will aut
 
 There are two pre-existing NVM aliases `default` (current "active" version of Node.js) and `system` (the base OS version of Node.js).
 
-*Aliasing is a very powerful feature of NVM and it is a **recommended best practice** for managing your environment*.
+*Aliasing is a very powerful feature of NVM and it is a **recommended best practice** for managing your environment(s)*.
 
 #### Multi Install
 
@@ -199,6 +225,45 @@ There are two pre-existing NVM aliases `default` (current "active" version of No
       default: true
       nodejs_version: "10.15.0" # <= This is now the "default" version of Node.js
 ```
+
+#### Multi User + Multi Install w/ default
+
+```yaml
+
+- hosts: host-1
+
+  pre-tasks:
+
+    # The users need to be a real user on the system before we can install nvm in their profile
+    - name: add new user 1
+      user:
+        name: ec2-user
+      become: true
+
+    - name: add new user 2
+      user:
+        name: ec2-admin-user
+      become: true
+
+
+  roles:
+    # User 1
+    - role: ansible-role-nvm
+      default: true
+      nodejs_version: "8.15.0"
+      nvm_profile: "~/.zshrc"
+      become: true
+      become_user: ec2-user 
+
+    # User 2
+    - role: ansible-role-nvm
+      default: true
+      nodejs_version: "10.15.0"
+      nvm_profile: "~/.bashrc"
+      become: true
+      become_user: ec2-admin-user 
+```
+
 
 <a name='#nvm-commands'></a>
 ## Notes on NVM commands
@@ -310,7 +375,44 @@ Another example
 
 ```
 
-**Whatever command line arguments you use to start your application, or command scripts you've declared in your package.json file can be placed inside the `nvm_commands: []` section of this role.**
+OR 
+
+Install a bunch of global NPM packages
+
+```yaml
+- hosts: host-1
+
+  pre-tasks:
+
+    # The responsibility of adding a user and associated permissions is yours
+    - name: Add sudo user
+      user:
+        name: npm-user
+        groups: sudo
+        append: true
+        state: present
+        createhome: true
+
+    # Add npm-user to the sudoers folder to install global NPM packages without a password
+    - name: Make sudo without password for npm-user
+      copy:
+        dest: /etc/sudoers.d/nvm-sudo-user
+        content: "npm-user ALL=(ALL) NOPASSWD:ALL"
+        mode: 0440
+
+
+  roles:
+    
+    - role: ansible-role-nvm
+      nodejs_version: "8.15.0"
+      nvm_commands:
+        - "nvm exec npm install -g nodemon@latest express@latest pm2@latest"
+      become: true
+      become-user: npm-user
+-
+```
+
+**Whatever command line arguments you use to start your application, or command scripts you've declared in your package.json file can be placed inside the `nvm_commands: []` section of this role provided that the user exists and has the appropriate permissions** 
 
 ```yaml
 - hosts: host1
@@ -404,7 +506,7 @@ If you require support for ansible-core 2.15 and below, please use the [ansible-
 
 **ansible-core 2.15 and below**
 
-Please use the [legacy 1.5.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy)
+Please use the [legacy 1.6.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy)
 
 ---
 
@@ -441,7 +543,7 @@ Set default version of Node when maintaining/installing multiple versions of Nod
   default: false
   ```
 
-> NVM will automatically alias the first run/installed version as "default" which is more than likely what people will use this role  for, however, this will allow for installation/upgrade of multiple versions on an existing machine
+> NVM will automatically alias the first run/installed version as "default" which is more than likely what people will use this role  for, however, setting `default:  true` will allow for installation/upgrade of multiple Node versions on an existing machine
 
 
 
@@ -538,9 +640,12 @@ Uninstall NVM, will remove the .nvm directory and clean up file located at the `
 None.
 
 ## Change Log
----
+
+**2.1.0**
+See the [RELEASE NOTES](https://github.com/morgangraphics/ansible-role-nvm/releases/tag/v2.1.0)
+
 **2.0.0**
-See the [RELEASE NOTES](https://github.com/morgangraphics/ansible-role-nvm/releases/latest)
+See the [RELEASE NOTES](https://github.com/morgangraphics/ansible-role-nvm/releases/tag/v2.0.0)
 
 
 

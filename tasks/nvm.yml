@@ -46,6 +46,7 @@
 
 # https://github.com/morgangraphics/ansible-role-nvm/issues/18
 - name: Determine shell in which we are running
+  when: nvm_profile | length != 0
   block:
 
     - name: Set default found path
@@ -116,7 +117,7 @@
         - not ignore_nvm_profile | bool
       become: true
 
-  when: nvm_profile | length != 0
+  # End Shell Check Block
 
 
 # ========== UNINSTALL ==========
@@ -126,10 +127,12 @@
 # I don't want the rest of the playbook running when uninstall = true
 # It defeats the purpose of the uninstall in the first place
 - name: Run everything else when uninstall = false
+  when: not uninstall
   block:
 
     # wget (deault) or curl
     - name: Installing via curl or wget
+      when: nvm_install in ['curl', 'wget']
       block:
 
         - name: Check if wget or curl is installed
@@ -183,10 +186,11 @@
             - not mg_profile_file.stat.exists
             - not ignore_nvm_profile | bool
 
-      when: nvm_install in ['curl', 'wget']
+      # End Curl/Wget Install Block
 
     # ========== INSTALL VIA GIT ==========
     - name: Install via git
+      when: "nvm_install == 'git'"
       block:
         - name: Check if git is installed
           ansible.builtin.command: "which {{ nvm_install }}"
@@ -226,7 +230,7 @@
           when:
             - not ignore_nvm_profile | bool
 
-      when: "nvm_install == 'git'"
+       # End Git Install Block
 
     - name: Check NVM Version # noqa command-instead-of-shell
       ansible.builtin.shell: "{{ mg_user_shell.command + ' \"nvm --version\"' }}"
@@ -293,4 +297,4 @@
       when: nvm_commands | length > 0
       changed_when: "mg_nvm_commands_response.rc != 0"
 
-  when: not uninstall
+  # End When Install = false Block
