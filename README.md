@@ -36,7 +36,7 @@ Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
 Ansible version (ansible-core) 2.16.0 +
 
 
-> :triangular_flag_on_post: For a version of this role that works on older versions of Ansible see the [legacy 1.5.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy)
+> 🚩 For a version of this role that works on older versions of Ansible see the [legacy 1.5.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy)
 
 See [Ansible Versions below](#ansible-versions)
 
@@ -56,7 +56,7 @@ See [Ansible Versions below](#ansible-versions)
 
 ---
 
-## :warning: WARNING!
+## ⚠️ WARNING!
 **DO NOT RUN THIS ROLE AS ROOT!** (e.g. `become: true|yes|1`)
 
 There are a few reasons for this,
@@ -66,7 +66,7 @@ There are a few reasons for this,
 
 1.  Ansible will change the context of the login shell to `root` and nvm will be installed in the `root_user` home directory e.g `/root/.bashrc`. This means if your primary user is **vagrant**, **ec2-user**, **ubuntu** etc. the role **WILL NOT WORK AS EXPECTED!**
 
-BAD :thumbsdown:
+BAD 👎
 
 ```yaml
 - hosts: all
@@ -83,7 +83,7 @@ BAD :thumbsdown:
       ...
 ```
 
-BETTER :thumbsup:
+BETTER 👍
 
 ```yaml
 - hosts: all
@@ -100,7 +100,7 @@ BETTER :thumbsup:
       become_method: sudo     # THIS SCOPES ALL TASKS, ONLY FOR THE SOME-OTHER-ROLE, AS ROOT_USER
 ```
 
-BEST :metal:
+BEST 🤘
 
 ```yaml
 - hosts: all
@@ -301,7 +301,7 @@ e.g hello-world.py
 print('hello-world')
 ```
 
-*:warning: You must include a script header for this to work properly*
+*⚠️ You must include a script header for this to work properly*
 
 OR
 
@@ -535,7 +535,7 @@ Install NVM from scratch removing **ANY** and **ALL** existing or previous refer
   clean_install: false
   ```
 
-> `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for `nvm` refrences, as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **:warning: USE WITH CAUTION, THIS WILL RESULT IN DATA LOSS**
+> `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for `nvm` refrences, as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **⚠️ USE WITH CAUTION, THIS WILL RESULT IN DATA LOSS**
 
 
 Set default version of Node when maintaining/installing multiple versions of Node
@@ -554,7 +554,7 @@ Ignore writing to or altering the NVM user default profile. NVM allows for skipp
   ignore_nvm_profile: false
   ```
 
-> :warning: Setting `ignore_nvm_profile: true` will override any option set in the `nvm_profile` variable and presumes that you have an already existing NVM alias defined in your profile file. **IF YOU DO NOT HAVE AN EXISTING NVM ALIAS IN YOUR PROFILE, THIS ROLE WILL NOT WORK AS EXPECTED!**
+> ⚠️ Setting `ignore_nvm_profile: true` will override any option set in the `nvm_profile` variable and presumes that you have an already existing NVM alias defined in your profile file. **IF YOU DO NOT HAVE AN EXISTING NVM ALIAS IN YOUR PROFILE, THIS ROLE WILL NOT WORK AS EXPECTED!**
 
 List of [NVM commands to run](#nvm-commands). Default is an empty list.
 
@@ -598,7 +598,7 @@ NVM Profile location Options are .bashrc, .cshrc, .tcshrc, .zshrc
 >
 > *If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real  user on the box, then nvm will not work as expected. `become`, `become_user` and `nvm_profile` path are symbiotic*
 >
-> :warning: **PLEASE BE AWARE OF THE LIMITATIONS OF EXPLICITLY DECLARING .profile OR .bash_profile FILES ON UBUNTU SYSTEMS**
+> ⚠️ **PLEASE BE AWARE OF THE LIMITATIONS OF EXPLICITLY DECLARING .profile OR .bash_profile FILES ON UBUNTU SYSTEMS**
 >
 >  [https://askubuntu.com/a/969923](https://askubuntu.com/a/969923) Explains in detail
 >
