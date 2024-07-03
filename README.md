@@ -144,7 +144,7 @@ Include the role as is and it will install the latest LTS version of Node.js
     - role: morgangraphics.ansible_role_nvm
 ```
 
-> Most examples use the locally installed syntax. Ff you prefer Ansible Galaxy, replace `role: ansible-role-nvm` with `role: morgangraphics.ansible_role_nvm` and it will work the same way
+> Most examples use the locally installed syntax. If you prefer Ansible Galaxy, replace `role: ansible-role-nvm` with `role: morgangraphics.ansible_role_nvm` and it will work the same way
 
 #### Simple
 Include the role and specify the specific version of Node.js you want to install
@@ -403,13 +403,14 @@ Install a bunch of global NPM packages
 
   roles:
     
+    # ansible-role-nvm will take care of the rest
     - role: ansible-role-nvm
       nodejs_version: "8.15.0"
       nvm_commands:
         - "nvm exec npm install -g nodemon@latest express@latest pm2@latest"
       become: true
       become-user: npm-user
--
+
 ```
 
 **Whatever command line arguments you use to start your application, or command scripts you've declared in your package.json file can be placed inside the `nvm_commands: []` section of this role provided that the user exists and has the appropriate permissions** 
