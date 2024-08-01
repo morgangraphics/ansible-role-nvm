@@ -9,9 +9,10 @@
   register: mg_nvm_whoami
   changed_when: false
 
-- name: Set a fact with the user name running the playbook.
+- name: Set some initial facts | user name running the playbook | interactive shell
   ansible.builtin.set_fact:
     mg_login_user: "{{ mg_nvm_whoami.stdout }}"
+    mg_shell_active_type: "i"
 
 # Profile Path Settings
 - name: Set full nvm_profile path | Default
@@ -22,19 +23,48 @@
 - name: Set full nvm_profile path | Custom Path
   ansible.builtin.set_fact:
     nvm_profile: "{{ nvm_profile }}"
-  when: '"bash" not in nvm_profile'
+  when:
+    - '"bash" not in nvm_profile'
+    - '"/etc" in nvm_profile'
+
+- name: Change shell intractivity type
+  ansible.builtin.set_fact:
+    mg_shell_active_type: "l"
+  when:
+    - '"bash" not in nvm_profile'
+    - '"/etc/profile" in nvm_profile'
 
 # https://github.com/nvm-sh/nvm?tab=readme-ov-file#additional-notes
-- name: Override profile path if ignore_nvm_profile = true
+- name: Override profile path if ignore_nvm_profile = true or global profile path present
   ansible.builtin.set_fact:
     nvm_profile: "/dev/null"
-  when: ignore_nvm_profile | bool
+  when: >
+    (ignore_nvm_profile | bool) or
+    (('/etc' not in nvm_profile) and
+    ('bash' not in nvm_profile))
 
 # ========== ERROR HANDLING ==========
-- name: Test to ensure symbiotic variables are declared | nvm_dir AND nvm_profile
+
+- name: Test to ensure symbiotic variables are declared - custom nvm direcotry | nvm_dir AND nvm_profile
   ansible.builtin.fail:
-    msg: "If setting a custom nvm_dir directory e.g. /opt/nvm, nvm_dir MUST be used in combination with nvm_profile"
-  when: nvm_dir and '"bash" in nvm_profile' and nvm_install != 'git'
+    msg: |
+      If setting a custom nvm_dir directory in a protected directoy e.g. /opt/nvm, nvm_dir MUST be used in combination with nvm_profile.
+      Please add a valid nvm_dir path to you play/playbook
+  when:
+    - nvm_dir | length == 0
+    - '"bash" in nvm_profile'
+    - nvm_install != 'git'
+
+# Otherwise install will default to /root/.nvm and that is no bueno
+- name: Test to ensure symbiotic variables are declared - custom nvm_profile | nvm_dir AND nvm_profile
+  ansible.builtin.fail:
+    msg: |
+      If setting a custom nvm_profile in a protected file e.g. /etc/profile, nvm_dir MUST be used in combination with nvm_profile.
+      Please add a valid nnvm_profile path to your play/playbook
+  when:
+    - nvm_dir | length == 0
+    - '"/etc" in nvm_profile'
+    - nvm_install != 'git'
 
 - name: Test to ensure symbiotic variables are declared | nvm_dir AND nvm_install = git
   ansible.builtin.fail:
@@ -72,32 +102,32 @@
 
     - name: Set bash command
       ansible.builtin.set_fact:
-        mg_user_shell: { 'command': '{{ mg_found_path }} -ic', 'alias': 'bash', 'pipefail': 'set -o pipefail &&' }
+        mg_user_shell: { 'command': '{{ mg_found_path }} -{{ mg_shell_active_type }} -c', 'alias': 'bash', 'pipefail': 'set -o pipefail &&' }
       when: '"bash" in nvm_profile'
 
     - name: Set dash command
       ansible.builtin.set_fact:
-        mg_user_shell: { 'command': '{{ mg_found_path }} -ic', 'alias': 'dash', 'pipefail': '' }
+        mg_user_shell: { 'command': '{{ mg_found_path }} -{{ mg_shell_active_type }} -c', 'alias': 'dash', 'pipefail': '' }
       when: '"dash" in nvm_profile'
 
     - name: Set zsh command
       ansible.builtin.set_fact:
-        mg_user_shell: { 'command': '{{ mg_found_path }} -ic', 'alias': 'zsh', 'pipefail': 'set -o pipefail &&' }
+        mg_user_shell: { 'command': '{{ mg_found_path }} -{{ mg_shell_active_type }} -c', 'alias': 'zsh', 'pipefail': 'set -o pipefail &&' }
       when: '"zsh" in nvm_profile'
 
     - name: Set csh command
       ansible.builtin.set_fact:
-        mg_user_shell: { 'command': '{{ mg_found_path }} -ic', 'alias': 'csh', 'pipefail': '' }
+        mg_user_shell: { 'command': '{{ mg_found_path }} -{{ mg_shell_active_type }} -c', 'alias': 'csh', 'pipefail': '' }
       when: "'csh' in nvm_profile and 'tcsh' not in nvm_profile"
 
     - name: Set tcsh command
       ansible.builtin.set_fact:
-        mg_user_shell: { 'command': '{{ mg_found_path }} -ic', 'alias': 'tcsh', 'pipefail': '' }
+        mg_user_shell: { 'command': '{{ mg_found_path }} -{{ mg_shell_active_type }} -c', 'alias': 'tcsh', 'pipefail': '' }
       when: "'tcsh' in nvm_profile"
 
     - name: "!WARNING! set unrecommended default for any other nvm_profile value !WARNING!"
       ansible.builtin.set_fact:
-        mg_user_shell: { 'command': '$(which bash) -ic', 'alias': 'bash', 'pipefail': 'set -o pipefail &&' }
+        mg_user_shell: { 'command': '$(which bash) -{{ mg_shell_active_type }} -c', 'alias': 'bash', 'pipefail': 'set -o pipefail &&' }
       when: (mg_shell_path is undefined) or (mg_found_path | length == 0)
 
     - name: Does profile file exist
@@ -107,8 +137,8 @@
 
     - name: Create profile file if it does not exist
       ansible.builtin.file:
-        group: "{{ ansible_become_user | default(ansible_user) }}"
-        owner: "{{ ansible_become_user | default(ansible_user) }}"
+        group: "{{ mg_login_user | default(lookup('env', 'USER')) }}"
+        owner: "{{ mg_login_user | default(lookup('env', 'USER')) }}"
         mode: "0777"
         path: "{{ nvm_profile }}"
         state: touch
@@ -126,12 +156,12 @@
 
 # I don't want the rest of the playbook running when uninstall = true
 # It defeats the purpose of the uninstall in the first place
-- name: Run everything else when uninstall = false
+- name: "Run everything else when uninstall is false" # noqa literal-compare
   when: not uninstall
   block:
 
     # wget (deault) or curl
-    - name: Installing via curl or wget
+    - name: "Installing via curl or wget" # noqa literal-compare
       when: nvm_install in ['curl', 'wget']
       block:
 
@@ -152,18 +182,21 @@
 
         - name: Create nvm_dir if it does not exist
           ansible.builtin.file:
-            group: "{{ ansible_become_user | default(ansible_user) }}"
-            owner: "{{ ansible_become_user | default(ansible_user) }}"
+            group: "{{ mg_login_user | default(lookup('env', 'USER')) }}"
+            owner: "{{ mg_login_user | default(lookup('env', 'USER')) }}"
             mode: "0775"
             path: "{{ nvm_dir }}"
             state: directory
           become: true
+          become_user: root
           when:
             - nvm_dir | length != 0
             - not ignore_nvm_profile | bool
 
+
         # ========== DEFAULT INSTALL ==========
-        # There are some potential security concerns with piping the install.sh script to whatever shell alias is defined: Risk is Low but not absolute
+        # There are some potential security concerns with piping the install.sh script to
+        # whatever shell alias is defined: Risk is Low but not absolute
         # https://blog.dijit.sh//don-t-pipe-curl-to-bash
         # https://news.ycombinator.com/item?id=12766049
         # https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install
@@ -173,12 +206,33 @@
           changed_when: "'already installed' not in mg_nvm_result.stdout"
           failed_when: >
             (mg_nvm_result.rc != 0) or
-            ("permission denied" in mg_nvm_result.stderr)
+            ("Permission denied" in mg_nvm_result.stderr)
+          become: true
+          become_user: "{{ mg_login_user | default(lookup('env', 'USER')) }}"
+          when: '"/etc" not in nvm_profile'
+
+        # When a protected Directory
+        - name: "Add NVM to {{ nvm_profile }} if global profile is detected" # noqa literal-compare
+          ansible.builtin.shell: "{{ mg_user_shell.command }} \"{{ run_command }} https://raw.githubusercontent.com/nvm-sh/nvm/v{{ nvm_version }}/install.sh | NVM_SOURCE={{ nvm_source }} NVM_DIR={{ nvm_dir }} PROFILE={{ nvm_profile }} {{ mg_user_shell.alias }}\""
+          register: mg_nvm_result
+          changed_when: "'already installed' not in mg_nvm_result.stdout"
+          failed_when: >
+            (mg_nvm_result.rc != 0) or
+            ("Permission denied" in mg_nvm_result.stderr)
+          when:
+            - '"/etc" in nvm_profile'
+            - mg_profile_file.stat.exists
+            - mg_profile_file.stat.writeable == false
+            - not ignore_nvm_profile | bool
+          become: true
+          become_user: root
+
+        # ===============
 
         - name: Update profile permissions to lock it down after writing
           ansible.builtin.file:
-            group: "{{ ansible_become_user | default(ansible_user) }}"
-            owner: "{{ ansible_become_user | default(ansible_user) }}"
+            group: "{{ mg_login_user | default(lookup('env', 'USER')) }}"
+            owner: "{{ mg_login_user | default(lookup('env', 'USER')) }}"
             mode: "0644"
             path: "{{ nvm_profile }}"
           become: true
@@ -200,7 +254,7 @@
         - name: Remove NVM nvm_profile if it exists
           ansible.builtin.blockinfile:
             block: |
-              export NVM_DIR="$HOME/.nvm"
+              export NVM_DIR="{{ nvm_dir | default('$HOME') }}/.nvm"
               [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
             marker_begin: "Installed via {{ role_repo }} START"
             marker_end: "{{ role_repo }} END"
@@ -219,7 +273,7 @@
         - name: Add NVM to nvm_profile
           ansible.builtin.blockinfile:
             block: |
-              export NVM_DIR="$HOME/.nvm"
+              export NVM_DIR="{{ nvm_dir | default('$HOME') }}/.nvm"
               [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
             create: true
             marker_begin: "Installed nvm via {{ role_repo }} START"
