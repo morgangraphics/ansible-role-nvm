@@ -18,20 +18,20 @@
 - name: Set full nvm_profile path | Default
   ansible.builtin.set_fact:
     nvm_profile: "$HOME/.bashrc"
-  when: '"bash" in nvm_profile'
+  when: '"./bash" in nvm_profile'
 
 - name: Set full nvm_profile path | Custom Path
   ansible.builtin.set_fact:
     nvm_profile: "{{ nvm_profile }}"
   when:
-    - '"bash" not in nvm_profile'
+    - '"/bash" not in nvm_profile and "/.bashrc" not in nvm_profile'
     - '"/etc" in nvm_profile'
 
 - name: Change shell intractivity type
   ansible.builtin.set_fact:
     mg_shell_active_type: "l"
   when:
-    - '"bash" not in nvm_profile'
+    - '"/bash" not in nvm_profile'
     - '"/etc/profile" in nvm_profile'
 
 # https://github.com/nvm-sh/nvm?tab=readme-ov-file#additional-notes
@@ -41,7 +41,8 @@
   when: >
     (ignore_nvm_profile | bool) or
     (('/etc' not in nvm_profile) and
-    ('bash' not in nvm_profile))
+    ('/bash' not in nvm_profile) and
+    ('bashrc' not in nvm_profile))
 
 # ========== ERROR HANDLING ==========
 
@@ -52,7 +53,7 @@
       Please add a valid nvm_dir path to you play/playbook
   when:
     - nvm_dir | length == 0
-    - '"bash" in nvm_profile'
+    - '"bash" in nvm_profile and "/.bashrc" not in nvm_profile'
     - nvm_install != 'git'
 
 # Otherwise install will default to /root/.nvm and that is no bueno
