@@ -1,25 +1,33 @@
 # Ansible Role: NVM
 
+![Ansible Role](https://img.shields.io/ansible/role/d/morgangraphics/ansible_role_nvm?logo=ansible&label=Ansible%20Galaxy%20Downloads&link=https%3A%2F%2Fgithub.com%2Fmorgangraphics%2Fansible-role-nvm)
+
 
 Installs NVM & Node.js on Debian/Ubuntu, RHEL/CentOS systems, and others *nix systems
 
-Ansible weirdness with SSH and (non)interactive shells makes working with NVM and Ansible a bit problematic. This [stack overflow](https://stackoverflow.com/questions/22256884/not-possible-to-source-bashrc-with-ansible) post explains some of the things other people have done to get around this particular issue.
+Ansible weirdness with SSH and login/interactive shells makes working with NVM and Ansible a bit problematic. This [stack overflow](https://stackoverflow.com/questions/22256884/not-possible-to-source-bashrc-with-ansible) post explains some of the things other people have done to get around this particular issue.
+
+This role only manages installation of NVM, the things NVM uses/alters. This role was built with the intent of leaving a small footprint while still allowing the full flexibility of automated installs/updates (via Ansible) and per user(s) management as needed. 
 
 ## Where other roles fall short
 Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
+
+1.  You cannot run ad-hoc nvm, npm, node, bash or shell commands. See [NVM Commands](#nvm-commands) below for examples on how this could eliminate specialiazed Node or other NVM roles entirely.
 
 1.  They use the apt-get or yum packages managers to install Node.js. This often means that the Node.js package is older than what is currently available via the Node.js repo. In some cases, those packages may not be a LTS release and if you need multiple Node.js versions running on the same host, you're out of luck.
 
 1.  They will often install NVM and Node.js as `root` user (`sudo su` or `become: true`). This can add to the headache of permissions related to NPM plugin management as well as how Node functions with nvm in addition to being an unneeded privilege escalation security risk
 
-1.  You cannot run ad hoc nvm, npm, node, bash or shell commands
+
 
 
 ## Where this role differs from other roles
 
+1.  You can install whatever **version** or **versions** of Node.js you want, per user, or globally ([read more](PROFILES.md))
+1.  You can install and run multiple version of Node.js at the same time on the same host
 1.  You can install NVM via wget, curl or git
 1.  You can use NVM just like you would via your [command line](https://github.com/creationix/nvm#usage) in your own Ansible tasks and playbooks
-1.  You can install whatever **version** or **versions** of Node.js you want
+
 1.  Doesn't install NVM or Node.js as root
 1.  Can run arbitrary nvm, npm, node, bash or shell commands potentially eliminating the need for a separate Node Ansible role all together
 
@@ -30,19 +38,28 @@ Other Ansible roles that install NVM and/or Node.js fall short in a few areas.
 Ansible version (ansible-core) 2.16.0 +
 
 
-> :triangular_flag_on_post: For a version of this role that works on older versions of Ansible see the [legacy 1.5.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy)
+> 🚩 For a version of this role that works on older versions of Ansible see the [legacy 1.6.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy)
 
 See [Ansible Versions below](#ansible-versions)
 
 
 ## Installation
+
+### Ansible Galaxy
+1. In your terminal, paste
+
+  ```shell
+  ansible-galaxy role install morgangraphics.ansible_role_nvm
+  ````
+
+### Locally
 1.  Clone this repo into your roles folder
 1.  Point the `roles_path` variable to the roles folder i.e. `roles_path = ../ansible-roles/` in your `ansible.cfg` file
 1.  Include role in your playbook
 
 ---
 
-## :warning: WARNING!
+## ⚠️ WARNING!
 **DO NOT RUN THIS ROLE AS ROOT!** (e.g. `become: true|yes|1`)
 
 There are a few reasons for this,
@@ -50,9 +67,9 @@ There are a few reasons for this,
 
 1.  This role installs nvm in the same context/shell/session as you would run NodeJS. You don't run NodeJS as `root`
 
-1.  Ansible will change the context of the login shell to `root` and nvm will be installed in the `root_user` home directory e.g `/root/.bashrc`. This means if your primary user is **vagrant**, **ec2-user**, **ubuntu** etc. the role **WILL NOT WORK AS EXPECTED!**
+1.  Ansible will change the context of the shell/home directory to `root` and nvm will be installed in the `root_user` home directory e.g `/root/.bashrc`. This means if your primary user is **vagrant**, **ec2-user**, **ubuntu** etc. the role **WILL NOT WORK AS EXPECTED!**
 
-BAD :thumbsdown:
+BAD 👎
 
 ```yaml
 - hosts: all
@@ -69,7 +86,7 @@ BAD :thumbsdown:
       ...
 ```
 
-BETTER :thumbsup:
+BETTER 👍
 
 ```yaml
 - hosts: all
@@ -86,7 +103,7 @@ BETTER :thumbsup:
       become_method: sudo     # THIS SCOPES ALL TASKS, ONLY FOR THE SOME-OTHER-ROLE, AS ROOT_USER
 ```
 
-BEST :metal:
+BEST 🤘
 
 ```yaml
 - hosts: all
@@ -110,8 +127,19 @@ See [Issues](#issues) below for further details
 
 ## Example Playbooks
 
-#### Super Simple
-Include the role as is and it will install latest LTS version of Node.js
+
+#### Super Simple Ansible Galaxy Version
+Include the role as is and it will install the latest LTS version of Node.js
+
+``` yaml
+- hosts: all
+
+  roles:
+    - role: morgangraphics.ansible_role_nvm
+```
+
+#### Super Simple Locally
+Include the role as is and it will install the latest LTS version of Node.js
 
 ``` yaml
 - hosts: all
@@ -119,6 +147,8 @@ Include the role as is and it will install latest LTS version of Node.js
   roles:
     - role: ansible-role-nvm
 ```
+
+> Most examples use the locally installed syntax. If you prefer Ansible Galaxy, replace `role: ansible-role-nvm` with `role: morgangraphics.ansible_role_nvm` and it will work the same way
 
 #### Simple
 Include the role and specify the specific version of Node.js you want to install
@@ -161,11 +191,11 @@ This example shows how you might set up multiple environments (Dev/Prod) with di
 
 ## Installing/Running/Maintaining or Upgrading multiple versions of Node.js on the same host
 
-By default, the **first** Node.js version instantiated in your Playbook will automatically be aliased as the "default" version regardless of whatever version you install afterwards or how many times you run the role. It is important to declare which version is expected to be the "default" version is you are install multiple versions on Node.js on a single machine.
+By default, the **first** Node.js version instantiated in your Playbook will automatically be aliased as the "default" version regardless of whatever version you install afterwards or how many times you run the role (this is how NVM functions). It is important to declare which version is expected to be the "default" version if you are install multiple versions on Node.js on a single machine.
 
 There are two pre-existing NVM aliases `default` (current "active" version of Node.js) and `system` (the base OS version of Node.js).
 
-*Aliasing is a very powerful feature of NVM and it is a **recommended best practice** for managing your environment*.
+*Aliasing is a very powerful feature of NVM and it is a **recommended best practice** for managing your environment(s)*.
 
 #### Multi Install
 
@@ -200,13 +230,52 @@ There are two pre-existing NVM aliases `default` (current "active" version of No
       nodejs_version: "10.15.0" # <= This is now the "default" version of Node.js
 ```
 
+#### Multi User + Multi Install w/ default
+
+```yaml
+
+- hosts: host-1
+
+  pre-tasks:
+
+    # The users need to be a real user on the system before we can install nvm in their profile
+    - name: add new user 1
+      user:
+        name: ec2-user
+      become: true
+
+    - name: add new user 2
+      user:
+        name: ec2-admin-user
+      become: true
+
+
+  roles:
+    # User 1
+    - role: ansible-role-nvm
+      default: true
+      nodejs_version: "8.15.0"
+      nvm_profile: "~/.zshrc"
+      become: true
+      become_user: ec2-user 
+
+    # User 2
+    - role: ansible-role-nvm
+      default: true
+      nodejs_version: "10.15.0"
+      nvm_profile: "~/.bashrc"
+      become: true
+      become_user: ec2-admin-user 
+```
+
+
 <a name='#nvm-commands'></a>
 ## Notes on NVM commands
-**NVM commands are a very powerful feature of this role** which takes advantage of the groundwork NVM has set up. Leveraging `nvm_commands` could potentially eliminate the need for a specific Node role to manage your Node applications altogether.
+**NVM commands are a very powerful feature of this role** which takes advantage of the groundwork NVM has set up. Leveraging `nvm_commands` could potentially eliminate the need for a specific Node role, or even other NVM roles to manage your Node applications altogether.
 
-There is a difference between `nvm run` and `nvm exec` commands. `nvm run` is functionally equivalent to `node server.js` or `node server` where you are invoking a JavaScript file
+There is a difference between `nvm run` and `nvm exec` commands. `nvm run` is functionally equivalent to `node server.js` or `node server` on the command line where you are invoking a JavaScript file
 
-`nvm exec` executes in a sub process context and is functionally equivalent to `npm run server` where `server` is a key name in the scripts section in the `package.json` file
+`nvm exec` executes in a sub process context and is functionally equivalent to `npm run server` on the command line where `server` is a key name in the scripts section in the `package.json` file
 
 ``` json
 {
@@ -232,11 +301,11 @@ OR
 e.g hello-world.py
 
 ```python
-#!/usr/bin/env python
+#!/usr/bin/env python3
 print('hello-world')
 ```
 
-*:warning: You must include a script header for this to work properly*
+*⚠️ You must include a script header for this to work properly*
 
 OR
 
@@ -310,7 +379,47 @@ Another example
 
 ```
 
-**Whatever command line arguments you use to start your application, or command scripts you've declared in your package.json file can be placed inside the `nvm_commands: []` section of this role.**
+OR 
+
+Install a bunch of global NPM packages
+
+```yaml
+- hosts: host-1
+
+  pre-tasks:
+
+    # The responsibility of adding a user and associated permissions is yours
+    - name: Add sudo user
+      user:
+        name: npm-user
+        groups: sudo
+        append: true
+        state: present
+        createhome: true
+
+    # Add npm-user to the sudoers folder to install global NPM packages without a password OR install in a global profile location e.g /etc/profile
+    - name: Make sudo without password for npm-user
+      copy:
+        dest: /etc/sudoers.d/nvm-sudo-user
+        content: "npm-user ALL=(ALL) NOPASSWD:ALL"
+        mode: "0440"
+      become: true
+      become_user: root
+
+
+  roles:
+    
+    # ansible-role-nvm will take care of the rest
+    - role: ansible-role-nvm
+      nodejs_version: "8.15.0"
+      nvm_commands:
+        - "npm install -g nodemon@latest express@latest pm2@latest"
+      become: true
+      become_user: npm-user
+
+```
+
+**Whatever command line arguments you use to start your application, or command scripts you've declared in your package.json file can be placed inside the `nvm_commands: []` section of this role provided that the user exists and has the appropriate permissions** 
 
 ```yaml
 - hosts: host1
@@ -348,24 +457,27 @@ Another example
 
 1.  NVM is stateless in that if you have multiple versions of Node.js installed on a machine, you may have to run `nvm use <VERSION>` as part of your script to run the Node.js version you want/expect. However, it is highly recommended that you alias your versions accordingly and reference them that way. See the examples above.
 
+1. [Read more](PROFILES.md) about global install options
+
 <a name='#issues'></a>
 ## Issues
 
 
-### `"nvm: command not found" error`
+### "nvm: command not found" error
 
-This is often the result of running the role in another user context then the `nvm` and `node` user context will run inside the machine. If you add `become: true` to all the roles in your playbook to get around errors those roles throw due to permission issues, then this role will install `nvm` under the `ROOT_USER` (usually `/root/.bashrc`). **It is more than likely that you will want to run nvm and node as a default user e.g. vagrant, ec2-user, ubuntu etc.** If, for whatever reason, you cannot remove the `become: true` for everything, you can get around the `become: true` issue by specifying `become: true` **AND** `become_user: ec2-user` for this role alone. See [bash: nvm command not found
+> This is often the result of running the role in another user context then the `nvm` and `node` user context will run inside the machine. If you add `become: true` to all the roles in your playbook to get around errors those roles throw due to permission issues, then this role will install `nvm` under the `ROOT_USER` (usually `/root/.bashrc`). **It is more than likely that you will want to run nvm and node as a default user e.g. vagrant, ec2-user, ubuntu etc.** If, for whatever reason, you cannot remove the `become: true` for everything, you can get around the `become: true` issue by specifying `become: true` **AND** `become_user: ec2-user` for this role alone. See [bash: nvm command not found
 ](https://github.com/morgangraphics/ansible-role-nvm/issues/16) for a detailed explanation of the issue
 
+> This issue will also show up if you do not have an NVM alias in your profile file and have set `ignore_nvm_profile: true`
 
-### `"cannot find /usr/bin/python" error`
 
-It is due to OS's that run Python 3 by default (e.g. Fedora). You will need to specify the Ansible python interpreter variable in the inventory file or via the command line
+### "cannot find /usr/bin/python" error
 
-```toml
+>It is due to OS's that run Python 3 by default (e.g. Fedora). You will need to specify the Ansible python interpreter variable in the inventory file or via the command line
+
+```text
 [fedora1]
 192.168.0.1 ansible_python_interpreter=/usr/bin/python3
-
 
 [fedora2]
 192.168.0.2
@@ -379,9 +491,15 @@ or
 ansible-playbook my-playbook.yml -e "ansible_python_interpreter=/usr/bin/python3"
 ```
 
-### `glibc_2.28' not found (required by node)`
+### "glibc_2.28' not found (required by node)" error
 
-You are attempting to run a version of Node.js on an operating system that is not supported by the version of Node.js you are installing. This is not an NVM issue nor is it an issue with the role. You need to either upgrade the OS or downgrade the version of Node.js you are atrempting to install. 
+> You are attempting to run a version of Node.js on an operating system that is not supported by the version of Node.js you are installing. This is not an NVM issue nor is it an issue with this role.
+>
+> To address this issue, you will need to: 
+> 1. Upgrade the OS version
+> 1. Downgrade the version of Node.js you are attempting to install
+>
+> &#160;
 
 
 <a name="ansible-versions"></a>
@@ -397,13 +515,13 @@ If you require support for ansible-core 2.15 and below, please use the [ansible-
 
 **ansible-core 2.15 and below**
 
-Please use the [legacy 1.5.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy)
+Please use the [legacy 1.6.X branch](https://github.com/morgangraphics/ansible-role-nvm/tree/ansible-role-nvm-legacy)
 
-
+---
 
 ## Role Variables
 
-Available variables are listed below, along with default values see [defaults/main.yml]( defaults/main.yml)
+Available variables are listed below, along with default values see [defaults/main.yml](defaults/main.yml)
 
 
 
@@ -421,22 +539,30 @@ The Node.js version to install. The latest "lts" version is the default and work
 
 Install NVM from scratch removing **ANY** and **ALL** existing or previous references to `.nvm` (directories) and **ANY** and **ALL** existing or previous references in profile entries e.g. `.bashrc` in the system. 
 
-```yaml
-clean_install: false
-```
+  ```yaml
+  clean_install: false
+  ```
 
-> `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for refrences as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **USE WITH CAUTION**
+> `clean_install: true` greps all files in `/home` `/root`, `/etc`, and `custom install directories` for `nvm` refrences, as-well-as looking for any `.nvm` folder in the system. This is equivalent to a new machine setup, **⚠️ USE WITH CAUTION, THIS WILL RESULT IN DATA LOSS**
 
-
-```yaml
-default: false
-```
 
 Set default version of Node when maintaining/installing multiple versions of Node
 
+  ```yaml
+  default: false
+  ```
 
-> NVM will automatically alias the first run/installed version as "default" which is more than likely what people will use this role  for, however, this will allow for installation/upgrade of multiple versions on an existing machine
+> NVM will automatically alias the first run/installed version as "default" which is more than likely what people will use this role  for, however, setting `default:  true` will allow for installation/upgrade of multiple Node versions on an existing machine
 
+
+
+Ignore writing to or altering the NVM user default profile. NVM allows for skipping the alteration of an existing profile [See Additional Notes in the nvm-sh Git Repo documentation](https://github.com/nvm-sh/nvm?tab=readme-ov-file#additional-notes)
+
+  ```yaml
+  ignore_nvm_profile: false
+  ```
+
+> ⚠️ Setting `ignore_nvm_profile: true` will override any option set in the `nvm_profile` variable and presumes that you have an already existing NVM alias defined in your profile file. **IF YOU DO NOT HAVE AN EXISTING NVM ALIAS IN YOUR PROFILE, THIS ROLE WILL NOT WORK AS EXPECTED!**
 
 List of [NVM commands to run](#nvm-commands). Default is an empty list.
 
@@ -458,46 +584,16 @@ NVM Installation directory.
 
 > *NVM will, by default, install the `.nvm` directory in the home directory of the user e.g. `/home/vagrant/.nvm`. You can override the installation directory by changing this variable e.g. `/opt/nvm` to put it into a global space (not tied to a specific user account) if you wanted. This variable will respect Ansible substitution variables e.g. `{{ansible_env.HOME}}`*
 
-NVM Profile location Options are .bashrc, .cshrc, .tcshrc, .zshrc
+NVM Profile location Options are bash compatible (or POSIX) shells .bashrc, .cshrc, .tcshrc, .zshrc
 
   ```yaml
   nvm_profile: ".bashrc"
   ```
 
-> The location of the login SHELL profile that will source the nvm command from. There are two potential contexts to consider:
->
-> *Globally, meaning everyone who logs in will have access to nvm (which may or may not what you really want)*
->
-> e.g `/etc/bash.bashrc`, `/etc/profile` etc.
->
-> **OR**
->
-> *On a per user basis tied to a specific user account*
->
-> e.g. `/home/vagrant/.bashrc`.*
-> 
-> *This role will create the appropriate profile file if it doesn't already exist.*
->
-> *If you specify nvm_profile: "/home/node-user/.bashrc" explicity and the node-user is not a real  user on the box, then nvm will not work as you expect. become, become_user and nvm_profile path are symbiotic*
->
-> :warning: **PLEASE BE AWARE OF THE LIMITATIONS OF EXPLICITLY DECLARING .profile OR .bash_profile FILES ON UBUNTU SYSTEMS**
->
->  [https://askubuntu.com/a/969923](https://askubuntu.com/a/969923) Explains in detail
->
->  [https://kb.iu.edu/d/abdy](https://kb.iu.edu/d/abdy) Shows options for each shell type
->
->  NVM Profile location Options are:
->
->  **BASH**: .bashrc
->
->  **CSH**: /etc/csh.cshrc, .cshrc
->
->  **TSCH**: /etc/csh.cshrc, .tcshrc, .cshrc
->
->  **ZSH**: .zshrc
+> The location of the SHELL profile that will source the nvm command from. [Read more about profile specifics regarding local and global installation options](PROFILES.md)
 
 
-NVM source location i.e. you host your own fork of [NVM](https://github.com/creationix/nvm)
+NVM source location i.e. you host your own fork of [NVM](https://github.com/nvm-sh/nvm)
 
   ```yaml
   nvm_source: ""
@@ -506,7 +602,7 @@ NVM source location i.e. you host your own fork of [NVM](https://github.com/crea
 NVM version to install
 
   ```yaml
-  nvm_version: "0.39.7"
+  nvm_version: "0.40.0"
   ```
 
 Uninstall NVM, will remove the .nvm directory and clean up file located at the `{{ nvm_profile }}` variable path (usually $HOME/.bashrc) where ever that file is located
@@ -523,9 +619,12 @@ Uninstall NVM, will remove the .nvm directory and clean up file located at the `
 None.
 
 ## Change Log
----
+
+**2.1.0**
+See the [RELEASE NOTES](https://github.com/morgangraphics/ansible-role-nvm/releases/tag/v2.1.0)
+
 **2.0.0**
-See the [RELEASE NOTES](https://github.com/morgangraphics/ansible-role-nvm/releases/latest)
+See the [RELEASE NOTES](https://github.com/morgangraphics/ansible-role-nvm/releases/tag/v2.0.0)
 
 
 
@@ -535,6 +634,6 @@ MIT / BSD
 
 ## Author Information
 
-dm00000 via MORGANGRAPHICS, INC
+[dm00000](https://github.com/morgangraphics) via MORGANGRAPHICS, INC
 
 This role borrows heavily from [Jeff Geerling's](https://www.jeffgeerling.com/) Node.js role, author of [Ansible for DevOps](https://www.ansiblefordevops.com/).

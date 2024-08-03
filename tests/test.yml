@@ -52,7 +52,7 @@
 #     - role: ansible-role-nvm
 #       uninstall: true
 #
-- hosts: ubuntu-bionic
-  roles:
-    - role: ansible-role-nvm
-      autocomplete: true
+# - hosts: ubuntu-bionic
+#   roles:
+#     - role: ansible-role-nvm
+#       autocomplete: true
